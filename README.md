@@ -3,7 +3,7 @@
 To install and test the packge run the following commands:
 ```
 >>> git clone https://github.com/TammoR/ormachine
->>> python3 setup.py install
+>>> pip3 install .
 >>> python3 tests/test_ormachine.py
 ```
 

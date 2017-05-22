@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-import OrMachine
+import ormachine
 from scipy.special import expit
 
 class simple_test(unittest.TestCase):
@@ -11,7 +11,7 @@ class simple_test(unittest.TestCase):
         
         X = np.concatenate(200*[X])
 
-        orm = OrMachine.machine()
+        orm = ormachine.machine()
 
         data = orm.add_matrix(val=X, sampling_indicator=False)
 
