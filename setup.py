@@ -8,7 +8,9 @@ from Cython.Distutils import build_ext
 ext_modules = [
     Extension(
         "cython_functions",
-        ["cython_functions.c"]
+        ["cython_functions.pyx"],
+        extra_compile_args = ["-Ofast", "-ffast-math", "-march=native", "-fopenmp" ],
+        extra_link_args=['-fopenmp'],
     )
 ]
 
@@ -20,7 +22,8 @@ setup(
     url='https://github.com/TammoR/OrMachine',
     py_modules=['ormachine','cython_functions'],
     ext_modules=cythonize(ext_modules),
-    install_requires=['numpy','scipy']
+    setup_requires=["Cython >= 0.20"],
+    install_requires=['numpy','scipy','Cython']
 )
 
 
