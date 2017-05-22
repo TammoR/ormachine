@@ -1,7 +1,6 @@
 import unittest
 import numpy as np
 import ormachine
-from scipy.special import expit
 
 class simple_test(unittest.TestCase):
     def test(self):
@@ -21,7 +20,7 @@ class simple_test(unittest.TestCase):
                   convergence_eps=1e-3, burn_in_min=500,
                   burn_in_max=1000)
 
-        self.assertEqual(expit(orm.layers[0].lbda()),1)
+        self.assertEqual(1/(1+np.exp(-orm.layers[0].lbda())),1)
 
 
 if __name__ == '__main__':
