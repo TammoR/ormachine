@@ -1,7 +1,7 @@
 #from Cython.Build import cythonize
 from distutils.core import setup
 from distutils.extension import Extension
-from Cython.Distutils import build_ext
+#from Cython.Distutils import build_ext
 import numpy
 
 ext_modules = [
@@ -18,7 +18,7 @@ setup(
     author_email='tammorukat@gmail.com',
     url='https://github.com/TammoR/OrMachine',
     py_modules=['ormachine'],
-    ext_modules=cythonize(ext_modules)
+    ext_modules=ext_modules
 )
 
 

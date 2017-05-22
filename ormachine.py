@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.random import binomial
 from itertools import count
-import cython
+#import cython
 import numpy as np
 from random import shuffle
 from scipy.special import expit
