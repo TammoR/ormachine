@@ -11,6 +11,9 @@ import numpy as np
 data_type = np.int8
 ctypedef np.int8_t data_type_t
 
+def dummy():
+    return 0
+
 # @cython.wraparound(False)
 # @cython.boundscheck(False)
 def draw_unified_noparents(data_type_t[:,:] x,  # N x D
