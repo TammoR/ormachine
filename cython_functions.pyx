@@ -1,5 +1,7 @@
 #!python
 # cython: profile=False, language_level=3, boundscheck=False, wraparound=False
+#cython --compile-args=-fopenmp --link-args=-fopenmp --force -a
+## for compilation run: python setup.py build_ext --inplace
 
 # %%cython --compile-args=-fopenmp --link-args=-fopenmp
 cimport cython
