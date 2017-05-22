@@ -1,5 +1,6 @@
 # The OrMachine
 
+Requires: python3-devel, Cython
 To install and test the packge run the following commands:
 ```
 >>> git clone https://github.com/TammoR/ormachine

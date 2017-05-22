@@ -23,7 +23,7 @@ setup(
     py_modules=['ormachine','cython_functions'],
     ext_modules=cythonize(ext_modules),
     setup_requires=["Cython >= 0.20"],
-    install_requires=['numpy','scipy','Cython']
+    install_requires=['numpy','scipy']
 )
 
 
