@@ -1,6 +1,9 @@
 # The OrMachine
 
-Requires: python3-devel, Cython
+## Dependencies
+Requires python3-devel, Cython, numpy and scipy.
+
+## Installation
 To install and test the packge run the following commands:
 ```
 >>> git clone https://github.com/TammoR/ormachine
