@@ -11,8 +11,6 @@ import numpy as np
 data_type = np.int8
 ctypedef np.int8_t data_type_t
 
-def dummy():
-    return 0
 
 # @cython.wraparound(False)
 # @cython.boundscheck(False)
