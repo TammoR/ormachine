@@ -1,12 +1,20 @@
+
 import numpy as np
 from numpy.random import binomial
 from itertools import count
 #import cython
 import numpy as np
 from random import shuffle
-from scipy.special import expit
+# from scipy.special import expit
 import cython_functions as cf
 import unittest
+
+def expit(x):
+    """
+    better implementation in scipy.special, 
+    but can avoid dependency
+    """
+    return 1/(1+np.exp(-x))
 
 class trace():
     """
