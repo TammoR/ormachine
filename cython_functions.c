@@ -20171,7 +20171,7 @@ PyMODINIT_FUNC PyInit_cython_functions(void)
   /* "cython_functions.pyx":1
  * #!python             # <<<<<<<<<<<<<<
  * # cython: profile=False, language_level=3, boundscheck=False, wraparound=False
- * #cython --compile-args=-fopenmp --link-args=-fopenmp --force -a
+ * # cython --compile-args=-fopenmp --link-args=-fopenmp --force -a
  */
   __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);

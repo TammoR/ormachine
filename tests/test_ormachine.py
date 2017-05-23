@@ -8,7 +8,7 @@ class simple_test(unittest.TestCase):
 
         X = 2*np.array([[0,0,1,1,0,0],[1,1,0,0,0,0],[0,0,1,1,1,1]])-1
         
-        X = np.concatenate(200*[X])
+        X = np.concatenate(20000*[X])
 
         orm = ormachine.machine()
 

@@ -7,7 +7,9 @@ import numpy
 ext_modules = [
     Extension(
         "cython_functions", ["cython_functions.c"],
-	include_dirs=[numpy.get_include()]
+	include_dirs=[numpy.get_include()],
+    extra_compile_args = ["-Ofast", "-ffast-math", "-march=native", "-fopenmp"],
+	extra_link_args=['-fopenmp']
     )
 ]
 
