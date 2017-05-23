@@ -20,6 +20,7 @@ setup(
     author_email='tammorukat@gmail.com',
     url='https://github.com/TammoR/OrMachine',
     py_modules=['ormachine'],
+    install_requires=['numpy'],
     ext_modules=ext_modules
 )
 
