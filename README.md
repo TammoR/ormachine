@@ -8,7 +8,9 @@ To install and test the packge run the following commands:
 ```
 >>> git clone https://github.com/TammoR/ormachine
 >>> cd ormachine/
->>> python3 setup.py install
+>>> pip3 install .
+	or >>> python3 setup.py install
+	(if you don't have the right permission add --user)
 >>> python3 tests/test_ormachine.py
 ```
 
