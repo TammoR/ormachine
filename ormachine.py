@@ -13,6 +13,7 @@ def expit(x):
     """
     return 1/(1+np.exp(-x))
 
+
 class trace():
     """
     abstract base class implementing methods for
@@ -24,7 +25,7 @@ class trace():
         return self.val
         
     def allocate_trace_arrays(self, no_of_samples):
-        if type(self.val)==np.ndarray:
+        if type(self.val) == np.ndarray:
             self.trace = np.empty([no_of_samples, *self.val.shape], dtype=np.int8)
         else:
             self.trace = np.empty([no_of_samples], dtype=np.float32)
