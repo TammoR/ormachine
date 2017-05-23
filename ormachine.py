@@ -5,6 +5,7 @@ from random import shuffle
 # from scipy.special import expit
 import cython_functions as cf
 import unittest
+# from IPython.core.debugger import Tracer
 
 def expit(x):
     """
@@ -92,14 +93,27 @@ class machine_parameter(trace):
         """
         
         # compute the number of correctly reconstructed data points
+
+        if False:
+            x=.5*(self.attached_matrices[0].child()+1)
+            u=.5*(self.attached_matrices[1]()+1)
+            z=.5*(self.attached_matrices[0]()+1)
+            prod = np.dot(z, u.transpose()) > 0
+
+            assert prod.shape == x.shape
+            print('\n\n', np.mean(prod == x))
+            print(x[x!=prod])
+
+            Tracer()()
+              
         P = cf.compute_P_parallel(self.attached_matrices[0].child(),
-                               self.attached_matrices[1](),
-                               self.attached_matrices[0]())
-        
+                                self.attached_matrices[1](),
+                                self.attached_matrices[0]())
+
         # effectie number of observations (precompute for speedup TODO (not crucial))
         ND = (np.prod(self.attached_matrices[0].child().shape) -\
                     np.sum(self.attached_matrices[0].child() == 0))
-        
+
         # set to MLE ( exp(-lbda_mle) = ND/P - 1 )
 #         print('\n'+str(arg)+'\n')
         if ND==P:
@@ -382,17 +396,19 @@ class machine():
         
         # allocate array for lamabda traces for burn in detection
         for lbda in sampling_lbdas:
-            lbda.allocate_trace_arrays(2*convergence_window)
+            lbda.allocate_trace_arrays(2*convergence_window)         
         
         # first sample without checking for convergence, if burn_in_min > 0
         pre_burn_in_iter = 0
         while True:
-            pre_burn_in_iter += 1
-            if pre_burn_in_iter%10 == 0:
-                print('\r\titeration: '+str(pre_burn_in_iter),end='')
-            
             if pre_burn_in_iter == burn_in_min:
                 break
+            pre_burn_in_iter += 1
+            if pre_burn_in_iter%10 == 0:
+                print('\r\titeration: '+ str(pre_burn_in_iter)+
+                      ' recon acc.: '+
+                      str([expit(np.mean(x())) for x in sampling_lbdas]),
+                      end='')
             else:
                 [s[0](s[1]) for s in sampling_tuples]
                 [x.update() for x in sampling_lbdas]
@@ -421,6 +437,7 @@ class machine():
                 
                 # check convergence for all lbdas
                 if np.all([x.check_convergence(eps=eps) for x in sampling_lbdas]):
+
                     print('\n\tconverged at reconstr. accuracy: ' +
                           str([expit(np.mean(x.trace)) for x in sampling_lbdas]))
                     break;
@@ -431,6 +448,7 @@ class machine():
                 for lbda in sampling_lbdas:
                     lbda.trace_index = 0
                 break;
+
         
     
     def infer(self, mats='all', no_samples=100, 
@@ -481,7 +499,7 @@ class machine():
             mat.allocate_trace_arrays(no_samples)
         for lbda in sampling_lbdas:
             lbda.allocate_trace_arrays(no_samples)
-        
+
         print('drawing samples...')
         for sampling_iter in range(1, no_samples+1):
             shuffle(sampling_tuples) # TODO
