@@ -17,11 +17,11 @@ ctypedef np.int8_t data_type_t
 # @cython.wraparound(False)
 # @cython.boundscheck(False)
 def draw_unified_noparents(data_type_t[:,:] x,  # N x D
-                         data_type_t[:,:] sibling, # D x Lc
-                         data_type_t[:,:] child, # N x Lc
-                         float lbda,
-                         float prior,
-                         data_type_t[:,:] sampling_indicator): # N x D
+                           data_type_t[:,:] sibling, # D x Lc
+                           data_type_t[:,:] child, # N x Lc
+                           float lbda,
+                           float prior,
+                           data_type_t[:,:] sampling_indicator): # N x D
     
     cdef float p, acc_child
     cdef int n, d, N = x.shape[0], D=x.shape[1]
@@ -51,6 +51,7 @@ def draw_unified_nochild(data_type_t[:,:] x,  # N x D
                     acc_par += lbda_pa[k]*compute_g_alt_tilde_unified(u_pa[k,d,:], z_pa[k,n,:]) 
                 p = sigmoid(acc_par + prior)
                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d]) 
+
 
 def draw_unified(data_type_t[:,:] x,  # N x D
                  data_type_t[:,:,:] z_pa, # K x N x Lp 

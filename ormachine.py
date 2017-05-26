@@ -139,8 +139,9 @@ class machine_matrix(trace):
         """
         role (str): 'features' or 'observations' or 'data'. Try to infer if not provided
         """
-        
+
         self.trace_index = 0
+        self.sampling_fct = None
         
         # never use empty lists as default arguments. bad things will happen
         if parents is None:
@@ -263,38 +264,47 @@ class machine_matrix(trace):
             self.role = 'features'
         else:
             raise ValueError('dimension mismatch')
-            
+
     def set_to_map(self):
         self.val = np.array(self.mean()>0, dtype=np.int8)
         self.val[self.val==0] = -1
-                        
-    def get_sampling_fct(self):
+
+    def set_sampling_fct(self, sampling_fct=None):
         """
-        Return appropriate sampling function wrapper, depending
-        on family status, sampling status etc.
+        Assing appropriate sampling function as attribute, depending
+        on family status, sampling status etc. or assign sampling_fct
+        if provided as argument.
+        Functions take mat object as only argument.
         """
         # first do some sanity checks, no of children etc. Todo
 
-        # matrix without parents
-        if not self.parents:
-            if self.role == 'observations':
-                return draw_unified_z_noparents_wrapper
-            elif self.role == 'features':
-                return draw_unified_u_noparents_wrapper
+        if sampling_fct is None:
+            # matrix without parents
+            if not self.parents:
+                if self.role == 'observations':
+                    self.sampling_fct = draw_unified_z_noparents_wrapper
+                elif self.role == 'features':
+                    self.sampling_fct = draw_unified_u_noparents_wrapper
 
-        # matrix without child
-        if not self.child:
-            if self.role == 'observations':
-                return draw_unified_z_nochild_wrapper
-            elif self.role == 'features':
-                return draw_unified_u_nochild_wrapper
+            # matrix without child
+            elif not self.child:
+                if self.role == 'observations':
+                    self.sampling_fct = draw_unified_z_nochild_wrapper
+                elif self.role == 'features':
+                    self.sampling_fct = draw_unified_u_nochild_wrapper
 
-        # matrix with child and parent
+            # matrix with child and parent
+            else:
+                if self.role == 'observations':
+                    self.sampling_fct = draw_unified_wrapper_z
+                elif self.role == 'features':
+                    self.sampling_fct = draw_unified_wrapper_u
+
+        elif sampling_fct is not None:
+            self.sampling_fct = sampling_fct
+
         else:
-            if self.role == 'observations':
-                return draw_unified_wrapper_z
-            elif self.role == 'features':
-                return draw_unified_wrapper_u
+            raise Warning('Sth is wrong with allocting sampling functions')
 
 
 class machine_layer():
@@ -388,146 +398,176 @@ class machine():
         self.layers.append(layer)
         
         return layer
-    
-        
-    def burn_in(self, sampling_tuples, sampling_lbdas, eps=1e-2, 
-                convergence_window=20, burn_in_min=100, burn_in_max=20000):
-        
-        
+
+    def burn_in(self,
+                mats,
+                lbdas,
+                eps=1e-2,
+                convergence_window=20,
+                burn_in_min=100,
+                burn_in_max=20000,
+                print_step=10):
+
         # allocate array for lamabda traces for burn in detection
-        for lbda in sampling_lbdas:
+        for lbda in lbdas:
             lbda.allocate_trace_arrays(2*convergence_window)         
-        
-        # first sample without checking for convergence, if burn_in_min > 0
+
+        # first sample without checking for convergence or saving lbda traces
+        # this is a 'pre-burn-in-phase'
         pre_burn_in_iter = 0
         while True:
+            # stop pre-burn-in if minimum numbers
+            # if burn-in iterations is reached
             if pre_burn_in_iter == burn_in_min:
                 break
+
             pre_burn_in_iter += 1
-            if pre_burn_in_iter%10 == 0:
-                print('\r\titeration: '+ str(pre_burn_in_iter)+
-                      ' recon acc.: '+
-                      str([expit(np.mean(x())) for x in sampling_lbdas]),
+
+            if pre_burn_in_iter % 10 == 0:
+                print('\r\titeration: ' +
+                      str(pre_burn_in_iter) +
+                      ' recon acc.: ' +
+                      str([expit(np.mean(x())) for x in lbdas]),
                       end='')
             else:
-                [s[0](s[1]) for s in sampling_tuples]
-                [x.update() for x in sampling_lbdas]
-                shuffle(sampling_tuples)
-                
+                # draw samples
+                [mat.sampling_fct(mat) for mat in mats]
+                [lbda.update() for lbda in lbdas]
+                shuffle(mats)
+
         # now check for convergence
         burn_in_iter = 0
         while True:
             burn_in_iter += 1
-            if (burn_in_iter)%10 == 0:
-                print('\r\titeration: '+str(pre_burn_in_iter+burn_in_iter),end='')
-            # sample matrices
-            [s[0](s[1]) for s in sampling_tuples] # TODO shuffle order or by size? test with problematic cases
-            # update lbda
-            [x.update() for x in sampling_lbdas]
+            if burn_in_iter % print_step == 0:
+                print('\r\titeration: ' +
+                      str(pre_burn_in_iter+burn_in_iter), end='')
+
+            # draw sampels
+            [mat.sampling_fct(mat) for mat in mats]
+            [lbda.update() for lbda in lbdas]
             # update lbda trace
-            [x.update_trace() for x in sampling_lbdas]
-            shuffle(sampling_tuples)
-                
+            [x.update_trace() for x in lbdas]
+            shuffle(mats)
+
             # check convergence every convergence_window iterations
-            if (burn_in_iter%convergence_window) == 0 and (burn_in_iter > convergence_window):
-                
+            if burn_in_iter % print_step == 0\
+            and (burn_in_iter > convergence_window):
+
                 # reset trace index
-                for lbda in sampling_lbdas:
+                for lbda in lbdas:
                     lbda.trace_index = 0
-                
+
                 # check convergence for all lbdas
-                if np.all([x.check_convergence(eps=eps) for x in sampling_lbdas]):
+                if np.all([x.check_convergence(eps=eps) for x in lbdas]):
 
                     print('\n\tconverged at reconstr. accuracy: ' +
-                          str([expit(np.mean(x.trace)) for x in sampling_lbdas]))
-                    break;
-            
+                          str([expit(np.mean(lbda.trace)) for lbda in lbdas]))
+                    break
+
             if burn_in_iter > burn_in_max:
                 print('\n\tmax burn-in iterations reached without convergence')
                 # reset trace index
-                for lbda in sampling_lbdas:
+                for lbda in lbdas:
                     lbda.trace_index = 0
-                break;
+                break
 
-        
-    
-    def infer(self, mats='all', no_samples=100, 
-               convergence_window=20, convergence_eps=1e-2,
-               burn_in_min=100, burn_in_max=20000):
+    def infer(self,
+              mats='all',
+              no_samples=100,
+              convergence_window=20,
+              convergence_eps=1e-2,
+              burn_in_min=100,
+              burn_in_max=20000,
+              print_step=10):
         """
         members can be a list of machine_layers or machine_matrices
         or a mix of both types.
         eps is on expit scale, i.e is the fractional reconstr. accuracy
         """
 
-        # create list of tuples of the form (sampling_function, mat)
+        # create list of matrices to draw samples from
         if mats == 'all':
-            sampling_tuples = [(x.get_sampling_fct(),x) 
-                                for x in self.members 
-                                if not np.all(x.sampling_indicator==0)]
-        elif type(mats) is list:
-            sampling_tuples = [(x.get_sampling_fct(),x) 
-                                for x in mats if not np.all(x.sampling_indicator==0)]
-        else:
-            raise TypeError('Sampling matrices not properly specified. Should be list of matrix objects.')
-        
-        # a list of all parameters (lbdas) that need to be updated
-        sampling_lbdas = [x[1].lbda for x in sampling_tuples] # own lbdas
-        sampling_lbdas_pa = []
-        for x in sampling_tuples:
-            if len(x[1].parents) > 0:
-                sampling_lbdas_pa.append(x[1].parents[0].lbda)
-        sampling_lbdas = list(set(sampling_lbdas).union(set(sampling_lbdas_pa)))
-        sampling_lbdas = [x for x in sampling_lbdas if x is not None]
+            mats = self.members
+        mats = [mat for mat in mats if not np.all(mat.sampling_indicator == 0)]
+
+        # assign sampling function to each mat
+        for mat in mats:
+            if not mat.sampling_fct:
+                    mat.set_sampling_fct()
+
+        # a list of corresponding parameters (lbdas)
+        lbdas = [mat.lbda for mat in mats]
+
+        # list of parameters (lbdas) of the parents matrices
+        lbdas_pa = []
+        for mat in mats:
+            if len(mat.parents) > 0:
+                lbdas_pa.append(mat.parents[0].lbda)
+
+        # union of lambdas is a list of all lambdas that need updating
+        lbdas = list(set(lbdas).union(set(lbdas_pa)))
+        lbdas = [x for x in lbdas if x is not None]
 
         # make sure all trace indicies are zero
-        for s in sampling_tuples:
-            s[1].trace_index = 0
-        for s in sampling_lbdas:
-            if s is not None:
-                s.trace_index = 0
-        
-        # burn in markov chain # TODO build in stopping mechanism if it does not converge
+        for mat in mats:
+            mat.trace_index = 0
+        for lbda in lbdas:
+            if lbda is not None:
+                lbda.trace_index = 0
+
+        # burn in markov chain # TODO build
+        # in stopping mechanism if it does not converge
         print('burning in markov chain...')
-        self.burn_in(sampling_tuples, sampling_lbdas, 
-                     eps=convergence_eps, convergence_window=convergence_window,
-                     burn_in_min=burn_in_min, burn_in_max=burn_in_max)        
-        
+        self.burn_in(mats,
+                     lbdas,
+                     eps=convergence_eps,
+                     convergence_window=convergence_window,
+                     burn_in_min=burn_in_min,
+                     burn_in_max=burn_in_max,
+                     print_step=print_step)
+
         # allocate memory to save samples
         print('allocating memory to save samples...')
-        for _, mat in sampling_tuples:
+        for mat in mats:
             mat.allocate_trace_arrays(no_samples)
-        for lbda in sampling_lbdas:
+        for lbda in lbdas:
             lbda.allocate_trace_arrays(no_samples)
 
         print('drawing samples...')
         for sampling_iter in range(1, no_samples+1):
-            shuffle(sampling_tuples) # TODO
-            
-            [s[0](s[1]) for s in sampling_tuples]
-            [s[1].update_trace() for s in sampling_tuples]
-            
-            [x.update() for x in sampling_lbdas]
-            [x.update_trace() for x in sampling_lbdas]
-            
-            if (sampling_iter)%10 == 0:
-                print('\r\t' + 'iteration ' + str(sampling_iter) + '; recon acc.: ' +
-                  str([round(expit(x()),2) for x in sampling_lbdas]), end='')
-            
+            shuffle(mats)  # TODO
+
+            # sample mats and write to trace
+            [mat.sampling_fct(mat) for mat in mats]
+            [mat.update_trace() for mat in mats]
+
+            # sample lbdas and write to trace
+            [lbda.update() for lbda in lbdas]
+            [lbda.update_trace() for lbda in lbdas]
+
+            if sampling_iter % print_step == 0:
+                print('\r\t' + 'iteration ' +
+                      str(sampling_iter) +
+                      '; recon acc.: ' +
+                      str([expit(x()) for x in lbdas]),
+                      end='')
+
         # set all parameters to MAP estimate
-        [x.set_to_map() for _,x in sampling_tuples]
-        [x.update() for x in sampling_lbdas]
+        [mat.set_to_map() for mat in mats]
+        [lbda.update() for lbda in lbdas]
         print('\nfinished.')
 
 
 def draw_unified_z_noparents_wrapper(mat):
-    
-    cf.draw_unified_noparents(mat(), # NxD
-                 mat.sibling(), # sibling u: D x Lc
-                 mat.child(), # child observation: N x Lc
-                 mat.lbda(), # own parameter: double
-                 mat.logit_bernoulli_prior,
-                 mat.sampling_indicator)
+
+    cf.draw_unified_noparents(
+        mat(),  # NxD
+        mat.sibling(),  # sibling u: D x Lc
+        mat.child(),  # child observation: N x Lc
+        mat.lbda(),  # own parameter: double
+        mat.logit_bernoulli_prior,
+        mat.sampling_indicator)
     
 def draw_unified_u_noparents_wrapper(mat):
     
