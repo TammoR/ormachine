@@ -13,6 +13,8 @@ To install and test the packge run the following commands:
 ```
 
 ## Basic usage example for a single layer Boolean Matrix Factorisation
+See examples folder for jupyter notebooks.
+
 ```
 import ormachine
 import numpy as np
