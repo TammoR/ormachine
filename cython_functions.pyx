@@ -1,9 +1,8 @@
 #!python
-# cython: profile=False, language_level=3, boundscheck=False, wraparound=False
-# cython --compile-args=-fopenmp --link-args=-fopenmp --force -a
+#cython: profile=False, language_level=3, boundscheck=False, wraparound=False, cdivision=True
+#cython --compile-args=-fopenmp --link-args=-fopenmp --force -a
 ## for compilation run: python setup.py build_ext --inplace
 
-# %%cython --compile-args=-fopenmp --link-args=-fopenmp
 cimport cython
 from cython.parallel import prange, parallel
 from libc.math cimport exp
@@ -14,45 +13,7 @@ data_type = np.int8
 ctypedef np.int8_t data_type_t
 
 
-# @cython.wraparound(False)
-# @cython.boundscheck(False)
-def draw_unified_noparents(data_type_t[:,:] x,  # N x D
-                           data_type_t[:,:] sibling, # D x Lc
-                           data_type_t[:,:] child, # N x Lc
-                           float lbda,
-                           float prior,
-                           data_type_t[:,:] sampling_indicator): # N x D
-    
-    cdef float p, acc_child
-    cdef int n, d, N = x.shape[0], D=x.shape[1]
-    for n in prange(N, schedule=dynamic, nogil=True): # parallelise
-        for d in range(D):
-            if sampling_indicator[n,d] is True:  
-                acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)
-#                 print(lbda, score_no_parents_unified(child[n,:], x[n,:], sibling, d))
-                p = sigmoid(acc_child + prior)
-                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])       
-
-def draw_unified_nochild(data_type_t[:,:] x,  # N x D
-                         data_type_t[:,:,:] z_pa, # K x N x Lp 
-                         data_type_t[:,:,:] u_pa, # K x D x Lp
-                         double[:] lbda_pa, # K
-                         float prior,
-                         data_type_t[:,:] sampling_indicator): # N x D
-
-    cdef float p, acc_par
-    cdef int n, d, K = len(lbda_pa), N=x.shape[0], D=x.shape[1]
-    for n in range(N): # parallelise
-        for d in range(D):
-            if sampling_indicator[n,d] is True:
-                # accumulate over all parents
-                acc_par = 0
-                for k in range(K):
-                    acc_par += lbda_pa[k]*compute_g_alt_tilde_unified(u_pa[k,d,:], z_pa[k,n,:]) 
-                p = sigmoid(acc_par + prior)
-                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d]) 
-
-
+# unified sampling is deprecated
 def draw_unified(data_type_t[:,:] x,  # N x D
                  data_type_t[:,:,:] z_pa, # K x N x Lp 
                  data_type_t[:,:,:] u_pa, # K x D x Lp
@@ -76,9 +37,111 @@ def draw_unified(data_type_t[:,:] x,  # N x D
                 acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)  
                 
                 p = sigmoid(acc_par + acc_child + prior)
-                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])            
-                
+                x[n, d] = swap_metropolised_gibbs_unified(p,x[n,d])            
+def draw_unified_nochild(data_type_t[:,:] x,  # N x D
+                         data_type_t[:,:,:] z_pa, # K x N x Lp 
+                         data_type_t[:,:,:] u_pa, # K x D x Lp
+                         double[:] lbda_pa, # K
+                         float prior,
+                         data_type_t[:,:] sampling_indicator): # N x D
+    """
+    not working for multiple parents. fix. todo
+    """
+                             
+    cdef float p, acc_par
+    cdef int n, d, K = len(lbda_pa), N=x.shape[0], D=x.shape[1]
+    for n in range(N): # parallelise
+        for d in range(D):
+            if sampling_indicator[n,d] is True:
+                # accumulate over all parents
+                acc_par = 0
+                for k in range(K):
+                    acc_par += lbda_pa[k]*compute_g_alt_tilde_unified(u_pa[k,d,:], z_pa[k,n,:]) 
+                p = sigmoid(acc_par + prior)
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d]) 
 
+
+# sampling functions called from python wrappers
+def draw_noparents_onechild(data_type_t[:,:] x,  # N x D
+                           data_type_t[:,:] sibling, # D x Lc
+                           data_type_t[:,:] child, # N x Lc
+                           float lbda,
+                           float prior,
+                           data_type_t[:,:] sampling_indicator): # N x D
+    
+    cdef float p, acc_child
+    cdef int n, d, N = x.shape[0], D=x.shape[1]
+    for n in prange(N, schedule=dynamic, nogil=True): # parallelise
+        for d in range(D):
+            if sampling_indicator[n,d] is True:  
+                acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)
+#                 print(lbda, score_no_parents_unified(child[n,:], x[n,:], sibling, d))
+                p = sigmoid(acc_child + prior)
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])       
+def draw_oneparent_nochild(data_type_t[:,:] x,  # N x D
+                           data_type_t[:,:] z_pa, # N x Lp 
+                           data_type_t[:,:] u_pa, # D x Lp
+                           double lbda_pa,
+                           float prior,
+                           data_type_t[:,:] sampling_indicator): # N x D
+
+    cdef float p, acc_par
+    cdef int n, d, N=x.shape[0], D=x.shape[1]
+    for n in prange(N, schedule=dynamic, nogil=True): # parallelise
+        for d in range(D):
+            if sampling_indicator[n,d] is True:
+                # accumulate over all parents
+                acc_par = lbda_pa*compute_g_alt_tilde_unified(u_pa[d,:], z_pa[n,:]) 
+                p = sigmoid(acc_par + prior)
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d]) 
+def draw_twoparents_nochild(
+        data_type_t[:,:] x,  # N x D
+        data_type_t[:,:] z_pa1, # N x Lp1
+        data_type_t[:,:] u_pa1, # D x Lp1
+        double lbda_pa1,
+        data_type_t[:,:] z_pa2, # N x Lp2
+        data_type_t[:,:] u_pa2, # D x Lp2
+        double lbda_pa2,
+        float prior,
+        data_type_t[:,:] sampling_indicator): # N x D
+
+    cdef float p, acc_par
+    cdef int n, d, N=x.shape[0], D=x.shape[1]
+    for n in prange(N, schedule=dynamic, nogil=True): # parallelise
+        for d in range(D):
+            if sampling_indicator[n,d] is True:
+                # accumulate over all parents
+                acc_par = lbda_pa1*compute_g_alt_tilde_unified(u_pa1[d,:], z_pa1[n,:]) +\
+                  lbda_pa2*compute_g_alt_tilde_unified(u_pa2[d,:], z_pa2[n,:])
+
+                p = sigmoid(acc_par + prior)
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d]) 
+def draw_oneparent_onechild(data_type_t[:,:] x,  # N x D
+                 data_type_t[:,:] z_pa, # N x Lp 
+                 data_type_t[:,:] u_pa, # D x Lp
+                 double lbda_pa, 
+                 data_type_t[:,:] sibling, # D x Lc
+                 data_type_t[:,:] child, # N x Lc
+                 float lbda,
+                 float prior,
+                 data_type_t[:,:] sampling_indicator): # N x D
+    
+    cdef float p, acc_par, acc_child
+    cdef int n, d, N = x.shape[0], D=x.shape[1]
+    for n in prange(N, schedule=dynamic, nogil=True):
+        for d in range(D):
+            if sampling_indicator[n,d] is True:
+
+                acc_par = lbda_pa*compute_g_alt_tilde_unified(u_pa[d,:], z_pa[n,:])
+                    
+                acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)  
+                
+                p = sigmoid(acc_par + acc_child + prior)
+                
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])            
+# def draw_two_parents_onechild
+        
+                
 # @cython.wraparound(False)
 # @cython.boundscheck(False)
 cpdef inline int compute_g_alt_tilde_unified(data_type_t[:] u,
@@ -162,7 +225,7 @@ cpdef inline long compute_P_parallel(data_type_t[:,:] x,
     cdef int d, n
 
     for n in prange(x.shape[0], schedule=dynamic, nogil=True):
-        for d in xrange(x.shape[1]):
+        for d in range(x.shape[1]):
             if compute_g_alt_tilde_unified(u[d,:], z[n,:]) == x[n, d]:
                 P += 1
     return P

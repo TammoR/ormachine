@@ -5,7 +5,7 @@ from random import shuffle
 # from scipy.special import expit
 import cython_functions as cf
 import unittest
-# from IPython.core.debugger import Tracer
+from IPython.core.debugger import Tracer
 
 def expit(x):
     """
@@ -14,6 +14,13 @@ def expit(x):
     """
     return 1/(1+np.exp(-x))
 
+def unique_ordered(seq):
+    """
+    return unique list entries preserving order.
+    """
+    seen = set()
+    seen_add = seen.add
+    return [x for x in seq if not (x in seen or seen_add(x))]
 
 class trace():
     """
@@ -46,6 +53,8 @@ class trace():
         r1 = expit(np.mean(self.trace[:l]))
         r2 = expit(np.mean(self.trace[l:]))
         r = expit(np.mean(self.trace))
+
+        # print('\n\n',r1\,'\n',r2,'\n',np.abs(r1-r2))
         
         if np.abs(r1-r2) < eps:
             return True
@@ -53,7 +62,6 @@ class trace():
             # print('reconstr. accuracy: '+str(r))
             return False
 
-        
 class machine_parameter(trace):
     """
     Parameters are attached to corresponding matrices
@@ -73,7 +81,7 @@ class machine_parameter(trace):
             
     def correct_role_order(self):
         """
-        the assigne matrices have to be ordere (observations,features),
+        the assigne matrices have to be ordered (observations,features),
         i.e. (z,u)
         """
         
@@ -119,9 +127,7 @@ class machine_parameter(trace):
         if ND==P:
             self.val = 10e10
         else:
-            self.val = np.max([0, np.min([1000, -np.log( ND / float(P) - 1)])])
-            
-        
+            self.val = np.max([0, np.min([1000, -np.log( ND / float(P) - 1)])])       
 
 class machine_matrix(trace):
     """
@@ -156,7 +162,6 @@ class machine_matrix(trace):
         self.sibling = sibling
         self.lbda = lbda
         
-        
         # assign prior
         self.set_prior(bernoulli_prior)
 
@@ -164,10 +169,17 @@ class machine_matrix(trace):
         assert (val is not None) or (shape is not None and p_init is not None)
         
         # initiliase matrix. TODO sanity checks for matrices (-1,1?)
+
+        # if value is given, assign
         if val is not None:
             self.val = np.array(val, dtype=np.int8)
+
+        # otherwise, if p_init is a matrix, assign it as value
+        elif type(p_init) is np.ndarray:
+            self.val = np.array(p_init, dtype=np.int8)            
+
+        # otherwise, initialise iid random with p_init
         else:
-            # assign random matrix
             # print('initialise matrix randomly')
             self.val = 2*np.array(binomial(n=1, p=p_init, size=shape), dtype=np.int8)-1
 
@@ -279,33 +291,48 @@ class machine_matrix(trace):
         # first do some sanity checks, no of children etc. Todo
 
         if sampling_fct is None:
-            # matrix without parents
-            if not self.parents:
-                if self.role == 'observations':
-                    self.sampling_fct = draw_unified_z_noparents_wrapper
-                elif self.role == 'features':
-                    self.sampling_fct = draw_unified_u_noparents_wrapper
+            
+            # matrix without child...
+            if not self.child:
+                # ...and one parent
+                if len(self.parent_layers) == 1:                   
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_oneparent_nochild_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_oneparent_nochild_wrapper
+                # ...and two parents
+                if len(self.parent_layers) == 2:
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_twoparents_nochild_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_twoparents_nochild_wrapper
 
-            # matrix without child
-            elif not self.child:
-                if self.role == 'observations':
-                    self.sampling_fct = draw_unified_z_nochild_wrapper
-                elif self.role == 'features':
-                    self.sampling_fct = draw_unified_u_nochild_wrapper
-
-            # matrix with child and parent
-            else:
-                if self.role == 'observations':
-                    self.sampling_fct = draw_unified_wrapper_z
-                elif self.role == 'features':
-                    self.sampling_fct = draw_unified_wrapper_u
+            # matrix with one child...
+            elif self.child:
+                # ... and no parent
+                if not self.parents:
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_noparents_onechild_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_noparents_onechild_wrapper                    
+                # ... and one parent 
+                elif len(self.parent_layers) == 1:
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_oneparent_onechild_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_oneparent_onechild_wrapper       
+                # ... and two parents (not implemented, throwing error)
+                elif len(self.parent_layers) == 2:
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_twoparents_onechild_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_twoparents_onechild_wrapper       
 
         elif sampling_fct is not None:
             self.sampling_fct = sampling_fct
 
         else:
             raise Warning('Sth is wrong with allocting sampling functions')
-
 
 class machine_layer():
     """
@@ -338,7 +365,6 @@ class machine_layer():
     def child(self):
         assert self.z.child is self.u.child
         return self.z.child
-
 
 class machine():
     """
@@ -376,18 +402,33 @@ class machine():
         return lbda
     
         
-    def add_layer(self, size, child=None, 
-                  lbda_init=2, z_init=.5, u_init=.5, 
+    def add_layer(self, size=None, child=None, 
+                  lbda_init=1.5, z_init=.5, u_init=.5, 
                   z_prior=None, u_prior=None):
         """
         This essentially wraps the necessary calls to
         add_parameter, add_matrix
         """
-        z = self.add_matrix(shape=(child().shape[0], size), 
+
+        # infer layer shape
+        if (size is None) and (child is not None):
+            if type(z_init) is np.ndarray:
+              shape_z = (child().shape[0], z_init.shape[1])
+              shape_u = (child().shape[1], z_init.shape[1])              
+            elif type(u_init) is np.ndarray:
+              shape_z = (child().shape[0], u_init.shape[1])
+              shape_u = (child().shape[1], u_init.shape[1])              
+        elif (size is not None) and (child is not None):
+            shape_z = (child().shape[0], size)
+            shape_u = (child().shape[1], size)    
+        else:
+            raise Warning('Can not infer layer size')
+            
+        z = self.add_matrix(shape=shape_z, 
                             child=child, p_init=z_init, bernoulli_prior=z_prior,
                             role='observations')
         
-        u = self.add_matrix(shape=(child().shape[1], size), sibling=z, 
+        u = self.add_matrix(shape=shape_u, sibling=z, 
                             child=child, p_init=u_init, bernoulli_prior=u_prior,
                             role='features')
         
@@ -403,14 +444,16 @@ class machine():
                 mats,
                 lbdas,
                 eps=1e-2,
-                convergence_window=20,
-                burn_in_min=100,
-                burn_in_max=20000,
-                print_step=10):
+                convergence_window=15,
+                burn_in_min=0,
+                burn_in_max=2000,
+                print_step=10,
+                fix_lbda_iters=0):
 
-        # allocate array for lamabda traces for burn in detection
-        for lbda in lbdas:
-            lbda.allocate_trace_arrays(2*convergence_window)         
+        """
+        fix_lbda_iters (int): no of iterations that lambda is not updated for.
+            this can help convergence.
+        """  
 
         # first sample without checking for convergence or saving lbda traces
         # this is a 'pre-burn-in-phase'
@@ -423,63 +466,75 @@ class machine():
 
             pre_burn_in_iter += 1
 
-            if pre_burn_in_iter % 10 == 0:
+            if pre_burn_in_iter % print_step == 0:
                 print('\r\titeration: ' +
                       str(pre_burn_in_iter) +
                       ' recon acc.: ' +
-                      str([expit(np.mean(x())) for x in lbdas]),
+                      ', '.join([str(round(expit(np.mean(x())),3)) for x in lbdas]),
                       end='')
-            else:
-                # draw samples
-                [mat.sampling_fct(mat) for mat in mats]
+
+            # draw samples
+            [mat.sampling_fct(mat) for mat in mats]
+            if pre_burn_in_iter > fix_lbda_iters:
                 [lbda.update() for lbda in lbdas]
                 shuffle(mats)
 
-        # now check for convergence
+                    
+        # allocate array for lamabda traces for burn in detection
+        for lbda in lbdas:
+            lbda.allocate_trace_arrays(convergence_window)
+            lbda.trace_index = 0          # reset trace index
+
+        # now cont. burn in and check for convergence
         burn_in_iter = 0
         while True:
             burn_in_iter += 1
+
+            # write output to terminal
             if burn_in_iter % print_step == 0:
                 print('\r\titeration: ' +
-                      str(pre_burn_in_iter+burn_in_iter), end='')
-
-            # draw sampels
-            [mat.sampling_fct(mat) for mat in mats]
-            [lbda.update() for lbda in lbdas]
-            # update lbda trace
-            [x.update_trace() for x in lbdas]
-            shuffle(mats)
-
+                      str(pre_burn_in_iter+burn_in_iter) +
+                      ' recon acc.: ' +
+                       ', '.join([str(round(expit(np.mean(x())),3)) for x in lbdas]),
+                      end='')
+                  
             # check convergence every convergence_window iterations
-            if burn_in_iter % print_step == 0\
-            and (burn_in_iter > convergence_window):
-
+            if burn_in_iter % convergence_window == 0:
                 # reset trace index
                 for lbda in lbdas:
                     lbda.trace_index = 0
-
                 # check convergence for all lbdas
                 if np.all([x.check_convergence(eps=eps) for x in lbdas]):
-
                     print('\n\tconverged at reconstr. accuracy: ' +
-                          str([expit(np.mean(lbda.trace)) for lbda in lbdas]))
+                           ', '.join([str(round(expit(np.mean(x())),3)) for x in lbdas]))
                     break
 
-            if burn_in_iter > burn_in_max:
+            # stop if max number of burn in inters is reached
+            if (burn_in_iter+pre_burn_in_iter) > burn_in_max:
                 print('\n\tmax burn-in iterations reached without convergence')
                 # reset trace index
                 for lbda in lbdas:
                     lbda.trace_index = 0
                 break
+            
+            # draw sampels
+            [mat.sampling_fct(mat) for mat in mats]
+            [lbda.update() for lbda in lbdas]
+            [x.update_trace() for x in lbdas]
+            shuffle(mats)
+            # 
+            # print([x.trace_index for x in lbdas], burn_in_iter)
+
 
     def infer(self,
               mats='all',
               no_samples=100,
-              convergence_window=20,
-              convergence_eps=1e-2,
+              convergence_window=15,
+              convergence_eps=1e-3,
               burn_in_min=100,
               burn_in_max=20000,
-              print_step=10):
+              print_step=5,
+              fix_lbda_iters=10):
         """
         members can be a list of machine_layers or machine_matrices
         or a mix of both types.
@@ -496,18 +551,14 @@ class machine():
             if not mat.sampling_fct:
                     mat.set_sampling_fct()
 
-        # a list of corresponding parameters (lbdas)
-        lbdas = [mat.lbda for mat in mats]
-
-        # list of parameters (lbdas) of the parents matrices
-        lbdas_pa = []
+        # list of parameters (lbdas) of matrix and parents
+        lbdas = []
         for mat in mats:
+            lbdas.append(mat.lbda)
             if len(mat.parents) > 0:
-                lbdas_pa.append(mat.parents[0].lbda)
-
-        # union of lambdas is a list of all lambdas that need updating
-        lbdas = list(set(lbdas).union(set(lbdas_pa)))
-        lbdas = [x for x in lbdas if x is not None]
+                lbdas.append(mat.parents[0].lbda)
+        # remove dubplicates preserving order
+        lbdas = [x for x in unique_ordered(lbdas) if x is not None]
 
         # make sure all trace indicies are zero
         for mat in mats:
@@ -516,8 +567,7 @@ class machine():
             if lbda is not None:
                 lbda.trace_index = 0
 
-        # burn in markov chain # TODO build
-        # in stopping mechanism if it does not converge
+        # burn in markov chain
         print('burning in markov chain...')
         self.burn_in(mats,
                      lbdas,
@@ -525,7 +575,8 @@ class machine():
                      convergence_window=convergence_window,
                      burn_in_min=burn_in_min,
                      burn_in_max=burn_in_max,
-                     print_step=print_step)
+                     print_step=print_step,
+                     fix_lbda_iters=fix_lbda_iters)
 
         # allocate memory to save samples
         print('allocating memory to save samples...')
@@ -550,18 +601,59 @@ class machine():
                 print('\r\t' + 'iteration ' +
                       str(sampling_iter) +
                       '; recon acc.: ' +
-                      str([expit(x()) for x in lbdas]),
+                      ', '.join([str(round(expit(np.mean(x())),3)) for x in lbdas]),
                       end='')
 
         # set all parameters to MAP estimate
-        [mat.set_to_map() for mat in mats]
-        [lbda.update() for lbda in lbdas]
+        # [mat.set_to_map() for mat in mats]
+        # [lbda.update() for lbda in lbdas]
         print('\nfinished.')
+    
+def draw_z_oneparent_nochild_wrapper(mat):
+    
+    cf.draw_oneparent_nochild(mat(), # NxD
+                 mat.parents[0](), # parents obs: N x Lp
+                 mat.parents[1](), # parents feat: D x Lp
+                 mat.parents[0].lbda(), # parent lbdas: 
+                 mat.logit_bernoulli_prior,
+                 mat.sampling_indicator)
+    
+def draw_u_oneparent_nochild_wrapper(mat):
+    
+    cf.draw_oneparent_nochild(mat(), # NxD
+                 mat.parents[1](), # parents obs: N x Lp
+                 mat.parents[0](), # parents feat: D x Lp
+                 mat.parents[0].lbda(), # parent lbdas: K (KxL for MaxM)
+                 mat.logit_bernoulli_prior,
+                 mat.sampling_indicator)    
+        
+def draw_z_twoparents_nochild_wrapper(mat):
 
+        cf.draw_twoparents_nochild(mat(), # NxD
+                 mat.parent_layers[0].z(), # parents obs: N x Lp
+                 mat.parent_layers[0].u(), # parents feat: D x Lp
+                 mat.parent_layers[0].u.lbda(), # parent lbda
+                 mat.parent_layers[1].z(), # parents obs: N x Lp
+                 mat.parent_layers[1].u(), # parents feat: D x Lp
+                 mat.parent_layers[1].u.lbda(), # parent lbda
+                 mat.logit_bernoulli_prior,
+                 mat.sampling_indicator)
+    
+def draw_u_twoparents_nochild_wrapper(mat):
 
-def draw_unified_z_noparents_wrapper(mat):
+        cf.draw_twoparents_nochild(mat(), # NxD
+                 mat.parent_layers[0].u(), # parents obs: N x Lp
+                 mat.parent_layers[0].z(), # parents feat: D x Lp
+                 mat.parent_layers[0].u.lbda(), # parent lbda
+                 mat.parent_layers[1].u(), # parents obs: N x Lp
+                 mat.parent_layers[1].z(), # parents feat: D x Lp
+                 mat.parent_layers[1].u.lbda(), # parent lbda
+                 mat.logit_bernoulli_prior,
+                 mat.sampling_indicator)        
 
-    cf.draw_unified_noparents(
+def draw_z_noparents_onechild_wrapper(mat):
+
+    cf.draw_noparents_onechild(
         mat(),  # NxD
         mat.sibling(),  # sibling u: D x Lc
         mat.child(),  # child observation: N x Lc
@@ -569,47 +661,57 @@ def draw_unified_z_noparents_wrapper(mat):
         mat.logit_bernoulli_prior,
         mat.sampling_indicator)
     
-def draw_unified_u_noparents_wrapper(mat):
+def draw_u_noparents_onechild_wrapper(mat):
     
-    cf.draw_unified_noparents(mat(), # NxD
+    cf.draw_noparents_onechild(mat(), # NxD
                  mat.sibling(), # sibling u: D x Lc
                  mat.child().transpose(), # child observation: N x Lc
                  mat.lbda(), # own parameter: double
                  mat.logit_bernoulli_prior,
                  mat.sampling_indicator)
-    
-def draw_unified_z_nochild_wrapper(mat):
-    
-    cf.draw_unified_nochild(mat(), # NxD
-                 np.array([l.z() for l in mat.parent_layers]), # parents obs: K x N x Lp
-                 np.array([l.u() for l in mat.parent_layers]), # parents feat: K x D x Lp
-                 np.array([x.lbda() for x in mat.parent_layers],dtype=float), # parent lbdas: K (KxL for MaxM)
-                 mat.logit_bernoulli_prior,
-                 mat.sampling_indicator)
-    
-def draw_unified_u_nochild_wrapper(mat):
-    
-    cf.draw_unified_nochild(mat(), # NxD
-                 np.array([l.u() for l in mat.parent_layers]), # parents obs: K x N x Lp
-                 np.array([l.z() for l in mat.parent_layers]), # parents feat: K x D x Lp
-                 np.array([x.lbda() for x in mat.parent_layers],dtype=float), # parent lbdas: K (KxL for MaxM)
-                 mat.logit_bernoulli_prior,
-                 mat.sampling_indicator)    
-    
+
+def draw_z_oneparent_onechild_wrapper(mat):
+
+    cf.draw_oneparent_onechild(
+        mat(), # N x D
+        mat.parents[0](), # parent obs: N x Lp
+        mat.parents[1](), # parent features, D x Lp
+        mat.parents[1].lbda(), # parent lbda
+        mat.sibling(), # sibling u: D x Lc
+        mat.child(), # child observation: N x Lc
+        mat.lbda(), # own parameter: double
+        mat.logit_bernoulli_prior,
+        mat.sampling_indicator)
+
+def draw_u_oneparent_onechild_wrapper(mat):
+
+    cf.draw_oneparent_onechild(
+        mat(), # NxD
+        mat.parents[1](), # parent obs: N x Lp
+        mat.parents[0](), # parent features, D x Lp
+        mat.parents[1].lbda(), # parent lbda
+        mat.sibling(), # sibling u: D x Lc
+        mat.child().transpose(), # child observation: N x Lc
+        mat.lbda(), # own parameter: double
+        mat.logit_bernoulli_prior,
+        mat.sampling_indicator)
+
+
+# missing: twoparents_onechild, (arbitraryparents_onechild, arbitaryparents_nochild)
+# unified wrapper aren't working
 def draw_unified_wrapper_z(mat):
+    cf.draw_unified(
+        mat(), # NxD
+        np.array([l.z() for l in mat.parent_layers]), # parents obs: K x N x Lp
+        np.array([l.u() for l in mat.parent_layers]), # parents feat: K x D x Lp
+        np.array([x.lbda() for x in mat.parent_layers],dtype=float), # parent lbdas: K (KxL for MaxM)
+        mat.sibling(), # sibling u: D x Lc
+        mat.child(), # child observation: N x Lc
+        mat.lbda(), # own parameter: double
+        mat.logit_bernoulli_prior,
+        mat.sampling_indicator)
     
-    cf.draw_unified(mat(), # NxD
-                 np.array([l.z() for l in mat.parent_layers]), # parents obs: K x N x Lp
-                 np.array([l.u() for l in mat.parent_layers]), # parents feat: K x D x Lp
-                 np.array([x.lbda() for x in mat.parent_layers],dtype=float), # parent lbdas: K (KxL for MaxM)
-                 mat.sibling(), # sibling u: D x Lc
-                 mat.child(), # child observation: N x Lc
-                 mat.lbda(), # own parameter: double
-                 mat.logit_bernoulli_prior,
-                 mat.sampling_indicator)
-       
 def draw_unified_wrapper_u(mat):
-    
     cf.draw_unified(
         mat(), # NxD
         np.array([l.u() for l in mat.parent_layers]), # parents obs: K x N x Lp
@@ -620,3 +722,4 @@ def draw_unified_wrapper_u(mat):
         mat.lbda(), # own parameter: double
         mat.logit_bernoulli_prior,
         mat.sampling_indicator)
+
