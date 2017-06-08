@@ -11,6 +11,10 @@ To install and test the packge run the following commands:
 	or >>> python3 setup.py install --user
 >>> python3 tests/test_ormachine.py
 ```
+If you like to compile the Cython coude yourself
+```
+>>> python3 setup_cythonize.py build_ext --inplace
+```
 
 ## Basic usage example for a single layer Boolean Matrix Factorisation
 See examples folder for jupyter notebooks.

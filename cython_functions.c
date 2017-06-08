@@ -1981,6 +1981,7 @@ static const char __pyx_k_RuntimeError[] = "RuntimeError";
 static const char __pyx_k_draw_unified[] = "draw_unified";
 static const char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
 static const char __pyx_k_allocate_buffer[] = "allocate_buffer";
+static const char __pyx_k_bernoulli_prior[] = "bernoulli_prior";
 static const char __pyx_k_dtype_is_object[] = "dtype_is_object";
 static const char __pyx_k_cython_functions[] = "cython_functions";
 static const char __pyx_k_sampling_indicator[] = "sampling_indicator";
@@ -2048,6 +2049,7 @@ static PyObject *__pyx_n_s_acc_child;
 static PyObject *__pyx_n_s_acc_par;
 static PyObject *__pyx_n_s_allocate_buffer;
 static PyObject *__pyx_n_s_base;
+static PyObject *__pyx_n_s_bernoulli_prior;
 static PyObject *__pyx_n_s_c;
 static PyObject *__pyx_n_u_c;
 static PyObject *__pyx_n_s_child;
@@ -2136,9 +2138,10 @@ static PyObject *__pyx_pf_16cython_functions_4draw_noparents_onechild(CYTHON_UNU
 static PyObject *__pyx_pf_16cython_functions_6draw_oneparent_nochild(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_z_pa, __Pyx_memviewslice __pyx_v_u_pa, double __pyx_v_lbda_pa, float __pyx_v_prior, __Pyx_memviewslice __pyx_v_sampling_indicator); /* proto */
 static PyObject *__pyx_pf_16cython_functions_8draw_twoparents_nochild(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_z_pa1, __Pyx_memviewslice __pyx_v_u_pa1, double __pyx_v_lbda_pa1, __Pyx_memviewslice __pyx_v_z_pa2, __Pyx_memviewslice __pyx_v_u_pa2, double __pyx_v_lbda_pa2, float __pyx_v_prior, __Pyx_memviewslice __pyx_v_sampling_indicator); /* proto */
 static PyObject *__pyx_pf_16cython_functions_10draw_oneparent_onechild(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_z_pa, __Pyx_memviewslice __pyx_v_u_pa, double __pyx_v_lbda_pa, __Pyx_memviewslice __pyx_v_sibling, __Pyx_memviewslice __pyx_v_child, float __pyx_v_lbda, float __pyx_v_prior, __Pyx_memviewslice __pyx_v_sampling_indicator); /* proto */
-static PyObject *__pyx_pf_16cython_functions_12compute_g_alt_tilde_unified(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_u, __Pyx_memviewslice __pyx_v_z); /* proto */
-static PyObject *__pyx_pf_16cython_functions_14score_no_parents_unified(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_z, __Pyx_memviewslice __pyx_v_u, int __pyx_v_l); /* proto */
-static PyObject *__pyx_pf_16cython_functions_16compute_P_parallel(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_u, __Pyx_memviewslice __pyx_v_z); /* proto */
+static PyObject *__pyx_pf_16cython_functions_12bernoulli_prior(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
+static PyObject *__pyx_pf_16cython_functions_14compute_g_alt_tilde_unified(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_u, __Pyx_memviewslice __pyx_v_z); /* proto */
+static PyObject *__pyx_pf_16cython_functions_16score_no_parents_unified(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_z, __Pyx_memviewslice __pyx_v_u, int __pyx_v_l); /* proto */
+static PyObject *__pyx_pf_16cython_functions_18compute_P_parallel(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_u, __Pyx_memviewslice __pyx_v_z); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -2208,17 +2211,18 @@ static PyObject *__pyx_tuple__27;
 static PyObject *__pyx_tuple__29;
 static PyObject *__pyx_tuple__31;
 static PyObject *__pyx_tuple__33;
-static PyObject *__pyx_tuple__35;
 static PyObject *__pyx_tuple__36;
 static PyObject *__pyx_tuple__37;
 static PyObject *__pyx_tuple__38;
 static PyObject *__pyx_tuple__39;
+static PyObject *__pyx_tuple__40;
 static PyObject *__pyx_codeobj__24;
 static PyObject *__pyx_codeobj__26;
 static PyObject *__pyx_codeobj__28;
 static PyObject *__pyx_codeobj__30;
 static PyObject *__pyx_codeobj__32;
 static PyObject *__pyx_codeobj__34;
+static PyObject *__pyx_codeobj__35;
 
 /* "cython_functions.pyx":17
  * 
@@ -3209,7 +3213,7 @@ static PyObject *__pyx_pf_16cython_functions_4draw_noparents_onechild(CYTHON_UNU
  *         for d in range(D):
  *             if sampling_indicator[n,d] is True:             # <<<<<<<<<<<<<<
  *                 acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)
- * #                 print(lbda, score_no_parents_unified(child[n,:], x[n,:], sibling, d))
+ *                 p = sigmoid(acc_child + prior)
  */
                               __pyx_t_6 = __pyx_v_n;
                               __pyx_t_7 = __pyx_v_d;
@@ -3220,8 +3224,8 @@ static PyObject *__pyx_pf_16cython_functions_4draw_noparents_onechild(CYTHON_UNU
  *         for d in range(D):
  *             if sampling_indicator[n,d] is True:
  *                 acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)             # <<<<<<<<<<<<<<
- * #                 print(lbda, score_no_parents_unified(child[n,:], x[n,:], sibling, d))
  *                 p = sigmoid(acc_child + prior)
+ *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
  */
                                 __pyx_t_9.data = __pyx_v_child.data;
                                 __pyx_t_9.memview = __pyx_v_child.memview;
@@ -3283,17 +3287,17 @@ __pyx_v_acc_child = (__pyx_v_lbda * __pyx_f_16cython_functions_score_no_parents_
                                 __pyx_t_10.memview = NULL;
                                 __pyx_t_10.data = NULL;
 
-                                /* "cython_functions.pyx":79
+                                /* "cython_functions.pyx":78
+ *             if sampling_indicator[n,d] is True:
  *                 acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)
- * #                 print(lbda, score_no_parents_unified(child[n,:], x[n,:], sibling, d))
  *                 p = sigmoid(acc_child + prior)             # <<<<<<<<<<<<<<
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
  * def draw_oneparent_nochild(data_type_t[:,:] x,  # N x D
  */
                                 __pyx_v_p = __pyx_f_16cython_functions_sigmoid((__pyx_v_acc_child + __pyx_v_prior));
 
-                                /* "cython_functions.pyx":80
- * #                 print(lbda, score_no_parents_unified(child[n,:], x[n,:], sibling, d))
+                                /* "cython_functions.pyx":79
+ *                 acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)
  *                 p = sigmoid(acc_child + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])             # <<<<<<<<<<<<<<
  * def draw_oneparent_nochild(data_type_t[:,:] x,  # N x D
@@ -3310,7 +3314,7 @@ __pyx_v_acc_child = (__pyx_v_lbda * __pyx_f_16cython_functions_score_no_parents_
  *         for d in range(D):
  *             if sampling_indicator[n,d] is True:             # <<<<<<<<<<<<<<
  *                 acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)
- * #                 print(lbda, score_no_parents_unified(child[n,:], x[n,:], sibling, d))
+ *                 p = sigmoid(acc_child + prior)
  */
                               }
                             }
@@ -3453,7 +3457,7 @@ __pyx_v_acc_child = (__pyx_v_lbda * __pyx_f_16cython_functions_score_no_parents_
   return __pyx_r;
 }
 
-/* "cython_functions.pyx":81
+/* "cython_functions.pyx":80
  *                 p = sigmoid(acc_child + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
  * def draw_oneparent_nochild(data_type_t[:,:] x,  # N x D             # <<<<<<<<<<<<<<
@@ -3498,31 +3502,31 @@ static PyObject *__pyx_pw_16cython_functions_7draw_oneparent_nochild(PyObject *_
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_z_pa)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_oneparent_nochild", 1, 6, 6, 1); __PYX_ERR(0, 81, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_oneparent_nochild", 1, 6, 6, 1); __PYX_ERR(0, 80, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_u_pa)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_oneparent_nochild", 1, 6, 6, 2); __PYX_ERR(0, 81, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_oneparent_nochild", 1, 6, 6, 2); __PYX_ERR(0, 80, __pyx_L3_error)
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_lbda_pa)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_oneparent_nochild", 1, 6, 6, 3); __PYX_ERR(0, 81, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_oneparent_nochild", 1, 6, 6, 3); __PYX_ERR(0, 80, __pyx_L3_error)
         }
         case  4:
         if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_prior)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_oneparent_nochild", 1, 6, 6, 4); __PYX_ERR(0, 81, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_oneparent_nochild", 1, 6, 6, 4); __PYX_ERR(0, 80, __pyx_L3_error)
         }
         case  5:
         if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_sampling_indicator)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_oneparent_nochild", 1, 6, 6, 5); __PYX_ERR(0, 81, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_oneparent_nochild", 1, 6, 6, 5); __PYX_ERR(0, 80, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "draw_oneparent_nochild") < 0)) __PYX_ERR(0, 81, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "draw_oneparent_nochild") < 0)) __PYX_ERR(0, 80, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 6) {
       goto __pyx_L5_argtuple_error;
@@ -3534,16 +3538,16 @@ static PyObject *__pyx_pw_16cython_functions_7draw_oneparent_nochild(PyObject *_
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
       values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
     }
-    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[0]); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 81, __pyx_L3_error)
-    __pyx_v_z_pa = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[1]); if (unlikely(!__pyx_v_z_pa.memview)) __PYX_ERR(0, 82, __pyx_L3_error)
-    __pyx_v_u_pa = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[2]); if (unlikely(!__pyx_v_u_pa.memview)) __PYX_ERR(0, 83, __pyx_L3_error)
-    __pyx_v_lbda_pa = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_lbda_pa == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 84, __pyx_L3_error)
-    __pyx_v_prior = __pyx_PyFloat_AsFloat(values[4]); if (unlikely((__pyx_v_prior == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 85, __pyx_L3_error)
-    __pyx_v_sampling_indicator = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[5]); if (unlikely(!__pyx_v_sampling_indicator.memview)) __PYX_ERR(0, 86, __pyx_L3_error)
+    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[0]); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 80, __pyx_L3_error)
+    __pyx_v_z_pa = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[1]); if (unlikely(!__pyx_v_z_pa.memview)) __PYX_ERR(0, 81, __pyx_L3_error)
+    __pyx_v_u_pa = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[2]); if (unlikely(!__pyx_v_u_pa.memview)) __PYX_ERR(0, 82, __pyx_L3_error)
+    __pyx_v_lbda_pa = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_lbda_pa == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 83, __pyx_L3_error)
+    __pyx_v_prior = __pyx_PyFloat_AsFloat(values[4]); if (unlikely((__pyx_v_prior == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 84, __pyx_L3_error)
+    __pyx_v_sampling_indicator = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[5]); if (unlikely(!__pyx_v_sampling_indicator.memview)) __PYX_ERR(0, 85, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("draw_oneparent_nochild", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 81, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("draw_oneparent_nochild", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 80, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cython_functions.draw_oneparent_nochild", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3581,7 +3585,7 @@ static PyObject *__pyx_pf_16cython_functions_6draw_oneparent_nochild(CYTHON_UNUS
   Py_ssize_t __pyx_t_14;
   __Pyx_RefNannySetupContext("draw_oneparent_nochild", 0);
 
-  /* "cython_functions.pyx":89
+  /* "cython_functions.pyx":88
  * 
  *     cdef float p, acc_par
  *     cdef int n, d, N=x.shape[0], D=x.shape[1]             # <<<<<<<<<<<<<<
@@ -3591,7 +3595,7 @@ static PyObject *__pyx_pf_16cython_functions_6draw_oneparent_nochild(CYTHON_UNUS
   __pyx_v_N = (__pyx_v_x.shape[0]);
   __pyx_v_D = (__pyx_v_x.shape[1]);
 
-  /* "cython_functions.pyx":90
+  /* "cython_functions.pyx":89
  *     cdef float p, acc_par
  *     cdef int n, d, N=x.shape[0], D=x.shape[1]
  *     for n in prange(N, schedule=dynamic, nogil=True): # parallelise             # <<<<<<<<<<<<<<
@@ -3646,7 +3650,7 @@ static PyObject *__pyx_pf_16cython_functions_6draw_oneparent_nochild(CYTHON_UNUS
                             __pyx_v_d = ((int)0xbad0bad0);
                             __pyx_v_p = ((float)__PYX_NAN());
 
-                            /* "cython_functions.pyx":91
+                            /* "cython_functions.pyx":90
  *     cdef int n, d, N=x.shape[0], D=x.shape[1]
  *     for n in prange(N, schedule=dynamic, nogil=True): # parallelise
  *         for d in range(D):             # <<<<<<<<<<<<<<
@@ -3657,7 +3661,7 @@ static PyObject *__pyx_pf_16cython_functions_6draw_oneparent_nochild(CYTHON_UNUS
                             for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
                               __pyx_v_d = __pyx_t_5;
 
-                              /* "cython_functions.pyx":92
+                              /* "cython_functions.pyx":91
  *     for n in prange(N, schedule=dynamic, nogil=True): # parallelise
  *         for d in range(D):
  *             if sampling_indicator[n,d] is True:             # <<<<<<<<<<<<<<
@@ -3669,7 +3673,7 @@ static PyObject *__pyx_pf_16cython_functions_6draw_oneparent_nochild(CYTHON_UNUS
                               __pyx_t_8 = (((*((__pyx_t_16cython_functions_data_type_t *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sampling_indicator.data + __pyx_t_6 * __pyx_v_sampling_indicator.strides[0]) ) + __pyx_t_7 * __pyx_v_sampling_indicator.strides[1]) ))) == 1) != 0);
                               if (__pyx_t_8) {
 
-                                /* "cython_functions.pyx":94
+                                /* "cython_functions.pyx":93
  *             if sampling_indicator[n,d] is True:
  *                 # accumulate over all parents
  *                 acc_par = lbda_pa*compute_g_alt_tilde_unified(u_pa[d,:], z_pa[n,:])             # <<<<<<<<<<<<<<
@@ -3693,7 +3697,7 @@ static PyObject *__pyx_pf_16cython_functions_6draw_oneparent_nochild(CYTHON_UNUS
             #ifdef WITH_THREAD
             PyGILState_Release(__pyx_gilstate_save);
             #endif
-        __PYX_ERR(0, 94, __pyx_L8_error)
+        __PYX_ERR(0, 93, __pyx_L8_error)
     }
         __pyx_t_9.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -3719,7 +3723,7 @@ __pyx_t_10.data = __pyx_v_z_pa.data;
             #ifdef WITH_THREAD
             PyGILState_Release(__pyx_gilstate_save);
             #endif
-        __PYX_ERR(0, 94, __pyx_L8_error)
+        __PYX_ERR(0, 93, __pyx_L8_error)
     }
         __pyx_t_10.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -3736,7 +3740,7 @@ __pyx_v_acc_par = (__pyx_v_lbda_pa * __pyx_f_16cython_functions_compute_g_alt_ti
                                 __pyx_t_10.memview = NULL;
                                 __pyx_t_10.data = NULL;
 
-                                /* "cython_functions.pyx":95
+                                /* "cython_functions.pyx":94
  *                 # accumulate over all parents
  *                 acc_par = lbda_pa*compute_g_alt_tilde_unified(u_pa[d,:], z_pa[n,:])
  *                 p = sigmoid(acc_par + prior)             # <<<<<<<<<<<<<<
@@ -3745,7 +3749,7 @@ __pyx_v_acc_par = (__pyx_v_lbda_pa * __pyx_f_16cython_functions_compute_g_alt_ti
  */
                                 __pyx_v_p = __pyx_f_16cython_functions_sigmoid((__pyx_v_acc_par + __pyx_v_prior));
 
-                                /* "cython_functions.pyx":96
+                                /* "cython_functions.pyx":95
  *                 acc_par = lbda_pa*compute_g_alt_tilde_unified(u_pa[d,:], z_pa[n,:])
  *                 p = sigmoid(acc_par + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])             # <<<<<<<<<<<<<<
@@ -3758,7 +3762,7 @@ __pyx_v_acc_par = (__pyx_v_lbda_pa * __pyx_f_16cython_functions_compute_g_alt_ti
                                 __pyx_t_14 = __pyx_v_d;
                                 *((__pyx_t_16cython_functions_data_type_t *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_13 * __pyx_v_x.strides[0]) ) + __pyx_t_14 * __pyx_v_x.strides[1]) )) = __pyx_f_16cython_functions_swap_metropolised_gibbs_unified(__pyx_v_p, (*((__pyx_t_16cython_functions_data_type_t *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_11 * __pyx_v_x.strides[0]) ) + __pyx_t_12 * __pyx_v_x.strides[1]) ))));
 
-                                /* "cython_functions.pyx":92
+                                /* "cython_functions.pyx":91
  *     for n in prange(N, schedule=dynamic, nogil=True): # parallelise
  *         for d in range(D):
  *             if sampling_indicator[n,d] is True:             # <<<<<<<<<<<<<<
@@ -3856,7 +3860,7 @@ __pyx_v_acc_par = (__pyx_v_lbda_pa * __pyx_f_16cython_functions_compute_g_alt_ti
         #endif
       }
 
-      /* "cython_functions.pyx":90
+      /* "cython_functions.pyx":89
  *     cdef float p, acc_par
  *     cdef int n, d, N=x.shape[0], D=x.shape[1]
  *     for n in prange(N, schedule=dynamic, nogil=True): # parallelise             # <<<<<<<<<<<<<<
@@ -3880,7 +3884,7 @@ __pyx_v_acc_par = (__pyx_v_lbda_pa * __pyx_f_16cython_functions_compute_g_alt_ti
       }
   }
 
-  /* "cython_functions.pyx":81
+  /* "cython_functions.pyx":80
  *                 p = sigmoid(acc_child + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
  * def draw_oneparent_nochild(data_type_t[:,:] x,  # N x D             # <<<<<<<<<<<<<<
@@ -3906,7 +3910,7 @@ __pyx_v_acc_par = (__pyx_v_lbda_pa * __pyx_f_16cython_functions_compute_g_alt_ti
   return __pyx_r;
 }
 
-/* "cython_functions.pyx":97
+/* "cython_functions.pyx":96
  *                 p = sigmoid(acc_par + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
  * def draw_twoparents_nochild(             # <<<<<<<<<<<<<<
@@ -3957,46 +3961,46 @@ static PyObject *__pyx_pw_16cython_functions_9draw_twoparents_nochild(PyObject *
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_z_pa1)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 1); __PYX_ERR(0, 97, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 1); __PYX_ERR(0, 96, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_u_pa1)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 2); __PYX_ERR(0, 97, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 2); __PYX_ERR(0, 96, __pyx_L3_error)
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_lbda_pa1)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 3); __PYX_ERR(0, 97, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 3); __PYX_ERR(0, 96, __pyx_L3_error)
         }
         case  4:
         if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_z_pa2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 4); __PYX_ERR(0, 97, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 4); __PYX_ERR(0, 96, __pyx_L3_error)
         }
         case  5:
         if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_u_pa2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 5); __PYX_ERR(0, 97, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 5); __PYX_ERR(0, 96, __pyx_L3_error)
         }
         case  6:
         if (likely((values[6] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_lbda_pa2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 6); __PYX_ERR(0, 97, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 6); __PYX_ERR(0, 96, __pyx_L3_error)
         }
         case  7:
         if (likely((values[7] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_prior)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 7); __PYX_ERR(0, 97, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 7); __PYX_ERR(0, 96, __pyx_L3_error)
         }
         case  8:
         if (likely((values[8] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_sampling_indicator)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 8); __PYX_ERR(0, 97, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, 8); __PYX_ERR(0, 96, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "draw_twoparents_nochild") < 0)) __PYX_ERR(0, 97, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "draw_twoparents_nochild") < 0)) __PYX_ERR(0, 96, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 9) {
       goto __pyx_L5_argtuple_error;
@@ -4011,19 +4015,19 @@ static PyObject *__pyx_pw_16cython_functions_9draw_twoparents_nochild(PyObject *
       values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
       values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
     }
-    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[0]); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 98, __pyx_L3_error)
-    __pyx_v_z_pa1 = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[1]); if (unlikely(!__pyx_v_z_pa1.memview)) __PYX_ERR(0, 99, __pyx_L3_error)
-    __pyx_v_u_pa1 = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[2]); if (unlikely(!__pyx_v_u_pa1.memview)) __PYX_ERR(0, 100, __pyx_L3_error)
-    __pyx_v_lbda_pa1 = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_lbda_pa1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 101, __pyx_L3_error)
-    __pyx_v_z_pa2 = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[4]); if (unlikely(!__pyx_v_z_pa2.memview)) __PYX_ERR(0, 102, __pyx_L3_error)
-    __pyx_v_u_pa2 = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[5]); if (unlikely(!__pyx_v_u_pa2.memview)) __PYX_ERR(0, 103, __pyx_L3_error)
-    __pyx_v_lbda_pa2 = __pyx_PyFloat_AsDouble(values[6]); if (unlikely((__pyx_v_lbda_pa2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 104, __pyx_L3_error)
-    __pyx_v_prior = __pyx_PyFloat_AsFloat(values[7]); if (unlikely((__pyx_v_prior == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 105, __pyx_L3_error)
-    __pyx_v_sampling_indicator = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[8]); if (unlikely(!__pyx_v_sampling_indicator.memview)) __PYX_ERR(0, 106, __pyx_L3_error)
+    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[0]); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 97, __pyx_L3_error)
+    __pyx_v_z_pa1 = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[1]); if (unlikely(!__pyx_v_z_pa1.memview)) __PYX_ERR(0, 98, __pyx_L3_error)
+    __pyx_v_u_pa1 = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[2]); if (unlikely(!__pyx_v_u_pa1.memview)) __PYX_ERR(0, 99, __pyx_L3_error)
+    __pyx_v_lbda_pa1 = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_lbda_pa1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 100, __pyx_L3_error)
+    __pyx_v_z_pa2 = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[4]); if (unlikely(!__pyx_v_z_pa2.memview)) __PYX_ERR(0, 101, __pyx_L3_error)
+    __pyx_v_u_pa2 = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[5]); if (unlikely(!__pyx_v_u_pa2.memview)) __PYX_ERR(0, 102, __pyx_L3_error)
+    __pyx_v_lbda_pa2 = __pyx_PyFloat_AsDouble(values[6]); if (unlikely((__pyx_v_lbda_pa2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 103, __pyx_L3_error)
+    __pyx_v_prior = __pyx_PyFloat_AsFloat(values[7]); if (unlikely((__pyx_v_prior == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 104, __pyx_L3_error)
+    __pyx_v_sampling_indicator = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[8]); if (unlikely(!__pyx_v_sampling_indicator.memview)) __PYX_ERR(0, 105, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 97, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("draw_twoparents_nochild", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 96, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cython_functions.draw_twoparents_nochild", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4063,7 +4067,7 @@ static PyObject *__pyx_pf_16cython_functions_8draw_twoparents_nochild(CYTHON_UNU
   Py_ssize_t __pyx_t_16;
   __Pyx_RefNannySetupContext("draw_twoparents_nochild", 0);
 
-  /* "cython_functions.pyx":109
+  /* "cython_functions.pyx":108
  * 
  *     cdef float p, acc_par
  *     cdef int n, d, N=x.shape[0], D=x.shape[1]             # <<<<<<<<<<<<<<
@@ -4073,7 +4077,7 @@ static PyObject *__pyx_pf_16cython_functions_8draw_twoparents_nochild(CYTHON_UNU
   __pyx_v_N = (__pyx_v_x.shape[0]);
   __pyx_v_D = (__pyx_v_x.shape[1]);
 
-  /* "cython_functions.pyx":110
+  /* "cython_functions.pyx":109
  *     cdef float p, acc_par
  *     cdef int n, d, N=x.shape[0], D=x.shape[1]
  *     for n in prange(N, schedule=dynamic, nogil=True): # parallelise             # <<<<<<<<<<<<<<
@@ -4128,7 +4132,7 @@ static PyObject *__pyx_pf_16cython_functions_8draw_twoparents_nochild(CYTHON_UNU
                             __pyx_v_d = ((int)0xbad0bad0);
                             __pyx_v_p = ((float)__PYX_NAN());
 
-                            /* "cython_functions.pyx":111
+                            /* "cython_functions.pyx":110
  *     cdef int n, d, N=x.shape[0], D=x.shape[1]
  *     for n in prange(N, schedule=dynamic, nogil=True): # parallelise
  *         for d in range(D):             # <<<<<<<<<<<<<<
@@ -4139,7 +4143,7 @@ static PyObject *__pyx_pf_16cython_functions_8draw_twoparents_nochild(CYTHON_UNU
                             for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
                               __pyx_v_d = __pyx_t_5;
 
-                              /* "cython_functions.pyx":112
+                              /* "cython_functions.pyx":111
  *     for n in prange(N, schedule=dynamic, nogil=True): # parallelise
  *         for d in range(D):
  *             if sampling_indicator[n,d] is True:             # <<<<<<<<<<<<<<
@@ -4151,7 +4155,7 @@ static PyObject *__pyx_pf_16cython_functions_8draw_twoparents_nochild(CYTHON_UNU
                               __pyx_t_8 = (((*((__pyx_t_16cython_functions_data_type_t *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sampling_indicator.data + __pyx_t_6 * __pyx_v_sampling_indicator.strides[0]) ) + __pyx_t_7 * __pyx_v_sampling_indicator.strides[1]) ))) == 1) != 0);
                               if (__pyx_t_8) {
 
-                                /* "cython_functions.pyx":114
+                                /* "cython_functions.pyx":113
  *             if sampling_indicator[n,d] is True:
  *                 # accumulate over all parents
  *                 acc_par = lbda_pa1*compute_g_alt_tilde_unified(u_pa1[d,:], z_pa1[n,:]) +\             # <<<<<<<<<<<<<<
@@ -4175,7 +4179,7 @@ static PyObject *__pyx_pf_16cython_functions_8draw_twoparents_nochild(CYTHON_UNU
             #ifdef WITH_THREAD
             PyGILState_Release(__pyx_gilstate_save);
             #endif
-        __PYX_ERR(0, 114, __pyx_L8_error)
+        __PYX_ERR(0, 113, __pyx_L8_error)
     }
         __pyx_t_9.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4201,7 +4205,7 @@ __pyx_t_10.data = __pyx_v_z_pa1.data;
             #ifdef WITH_THREAD
             PyGILState_Release(__pyx_gilstate_save);
             #endif
-        __PYX_ERR(0, 114, __pyx_L8_error)
+        __PYX_ERR(0, 113, __pyx_L8_error)
     }
         __pyx_t_10.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4212,7 +4216,7 @@ __pyx_t_10.strides[0] = __pyx_v_z_pa1.strides[1];
 
 __pyx_t_11.data = __pyx_v_u_pa2.data;
 
-                                /* "cython_functions.pyx":115
+                                /* "cython_functions.pyx":114
  *                 # accumulate over all parents
  *                 acc_par = lbda_pa1*compute_g_alt_tilde_unified(u_pa1[d,:], z_pa1[n,:]) +\
  *                   lbda_pa2*compute_g_alt_tilde_unified(u_pa2[d,:], z_pa2[n,:])             # <<<<<<<<<<<<<<
@@ -4235,7 +4239,7 @@ __pyx_t_11.data = __pyx_v_u_pa2.data;
             #ifdef WITH_THREAD
             PyGILState_Release(__pyx_gilstate_save);
             #endif
-        __PYX_ERR(0, 115, __pyx_L8_error)
+        __PYX_ERR(0, 114, __pyx_L8_error)
     }
         __pyx_t_11.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4261,7 +4265,7 @@ __pyx_t_12.data = __pyx_v_z_pa2.data;
             #ifdef WITH_THREAD
             PyGILState_Release(__pyx_gilstate_save);
             #endif
-        __PYX_ERR(0, 115, __pyx_L8_error)
+        __PYX_ERR(0, 114, __pyx_L8_error)
     }
         __pyx_t_12.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4272,7 +4276,7 @@ __pyx_t_12.strides[0] = __pyx_v_z_pa2.strides[1];
 
 __pyx_v_acc_par = ((__pyx_v_lbda_pa1 * __pyx_f_16cython_functions_compute_g_alt_tilde_unified(__pyx_t_9, __pyx_t_10, 0)) + (__pyx_v_lbda_pa2 * __pyx_f_16cython_functions_compute_g_alt_tilde_unified(__pyx_t_11, __pyx_t_12, 0)));
 
-                                /* "cython_functions.pyx":114
+                                /* "cython_functions.pyx":113
  *             if sampling_indicator[n,d] is True:
  *                 # accumulate over all parents
  *                 acc_par = lbda_pa1*compute_g_alt_tilde_unified(u_pa1[d,:], z_pa1[n,:]) +\             # <<<<<<<<<<<<<<
@@ -4292,7 +4296,7 @@ __pyx_v_acc_par = ((__pyx_v_lbda_pa1 * __pyx_f_16cython_functions_compute_g_alt_
                                 __pyx_t_12.memview = NULL;
                                 __pyx_t_12.data = NULL;
 
-                                /* "cython_functions.pyx":117
+                                /* "cython_functions.pyx":116
  *                   lbda_pa2*compute_g_alt_tilde_unified(u_pa2[d,:], z_pa2[n,:])
  * 
  *                 p = sigmoid(acc_par + prior)             # <<<<<<<<<<<<<<
@@ -4301,7 +4305,7 @@ __pyx_v_acc_par = ((__pyx_v_lbda_pa1 * __pyx_f_16cython_functions_compute_g_alt_
  */
                                 __pyx_v_p = __pyx_f_16cython_functions_sigmoid((__pyx_v_acc_par + __pyx_v_prior));
 
-                                /* "cython_functions.pyx":118
+                                /* "cython_functions.pyx":117
  * 
  *                 p = sigmoid(acc_par + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])             # <<<<<<<<<<<<<<
@@ -4314,7 +4318,7 @@ __pyx_v_acc_par = ((__pyx_v_lbda_pa1 * __pyx_f_16cython_functions_compute_g_alt_
                                 __pyx_t_16 = __pyx_v_d;
                                 *((__pyx_t_16cython_functions_data_type_t *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_15 * __pyx_v_x.strides[0]) ) + __pyx_t_16 * __pyx_v_x.strides[1]) )) = __pyx_f_16cython_functions_swap_metropolised_gibbs_unified(__pyx_v_p, (*((__pyx_t_16cython_functions_data_type_t *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_13 * __pyx_v_x.strides[0]) ) + __pyx_t_14 * __pyx_v_x.strides[1]) ))));
 
-                                /* "cython_functions.pyx":112
+                                /* "cython_functions.pyx":111
  *     for n in prange(N, schedule=dynamic, nogil=True): # parallelise
  *         for d in range(D):
  *             if sampling_indicator[n,d] is True:             # <<<<<<<<<<<<<<
@@ -4414,7 +4418,7 @@ __pyx_v_acc_par = ((__pyx_v_lbda_pa1 * __pyx_f_16cython_functions_compute_g_alt_
         #endif
       }
 
-      /* "cython_functions.pyx":110
+      /* "cython_functions.pyx":109
  *     cdef float p, acc_par
  *     cdef int n, d, N=x.shape[0], D=x.shape[1]
  *     for n in prange(N, schedule=dynamic, nogil=True): # parallelise             # <<<<<<<<<<<<<<
@@ -4438,7 +4442,7 @@ __pyx_v_acc_par = ((__pyx_v_lbda_pa1 * __pyx_f_16cython_functions_compute_g_alt_
       }
   }
 
-  /* "cython_functions.pyx":97
+  /* "cython_functions.pyx":96
  *                 p = sigmoid(acc_par + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
  * def draw_twoparents_nochild(             # <<<<<<<<<<<<<<
@@ -4468,7 +4472,7 @@ __pyx_v_acc_par = ((__pyx_v_lbda_pa1 * __pyx_f_16cython_functions_compute_g_alt_
   return __pyx_r;
 }
 
-/* "cython_functions.pyx":119
+/* "cython_functions.pyx":118
  *                 p = sigmoid(acc_par + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
  * def draw_oneparent_onechild(data_type_t[:,:] x,  # N x D             # <<<<<<<<<<<<<<
@@ -4519,46 +4523,46 @@ static PyObject *__pyx_pw_16cython_functions_11draw_oneparent_onechild(PyObject 
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_z_pa)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 1); __PYX_ERR(0, 119, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 1); __PYX_ERR(0, 118, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_u_pa)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 2); __PYX_ERR(0, 119, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 2); __PYX_ERR(0, 118, __pyx_L3_error)
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_lbda_pa)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 3); __PYX_ERR(0, 119, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 3); __PYX_ERR(0, 118, __pyx_L3_error)
         }
         case  4:
         if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_sibling)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 4); __PYX_ERR(0, 119, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 4); __PYX_ERR(0, 118, __pyx_L3_error)
         }
         case  5:
         if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_child)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 5); __PYX_ERR(0, 119, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 5); __PYX_ERR(0, 118, __pyx_L3_error)
         }
         case  6:
         if (likely((values[6] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_lbda)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 6); __PYX_ERR(0, 119, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 6); __PYX_ERR(0, 118, __pyx_L3_error)
         }
         case  7:
         if (likely((values[7] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_prior)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 7); __PYX_ERR(0, 119, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 7); __PYX_ERR(0, 118, __pyx_L3_error)
         }
         case  8:
         if (likely((values[8] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_sampling_indicator)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 8); __PYX_ERR(0, 119, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, 8); __PYX_ERR(0, 118, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "draw_oneparent_onechild") < 0)) __PYX_ERR(0, 119, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "draw_oneparent_onechild") < 0)) __PYX_ERR(0, 118, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 9) {
       goto __pyx_L5_argtuple_error;
@@ -4573,19 +4577,19 @@ static PyObject *__pyx_pw_16cython_functions_11draw_oneparent_onechild(PyObject 
       values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
       values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
     }
-    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[0]); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 119, __pyx_L3_error)
-    __pyx_v_z_pa = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[1]); if (unlikely(!__pyx_v_z_pa.memview)) __PYX_ERR(0, 120, __pyx_L3_error)
-    __pyx_v_u_pa = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[2]); if (unlikely(!__pyx_v_u_pa.memview)) __PYX_ERR(0, 121, __pyx_L3_error)
-    __pyx_v_lbda_pa = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_lbda_pa == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 122, __pyx_L3_error)
-    __pyx_v_sibling = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[4]); if (unlikely(!__pyx_v_sibling.memview)) __PYX_ERR(0, 123, __pyx_L3_error)
-    __pyx_v_child = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[5]); if (unlikely(!__pyx_v_child.memview)) __PYX_ERR(0, 124, __pyx_L3_error)
-    __pyx_v_lbda = __pyx_PyFloat_AsFloat(values[6]); if (unlikely((__pyx_v_lbda == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 125, __pyx_L3_error)
-    __pyx_v_prior = __pyx_PyFloat_AsFloat(values[7]); if (unlikely((__pyx_v_prior == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 126, __pyx_L3_error)
-    __pyx_v_sampling_indicator = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[8]); if (unlikely(!__pyx_v_sampling_indicator.memview)) __PYX_ERR(0, 127, __pyx_L3_error)
+    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[0]); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 118, __pyx_L3_error)
+    __pyx_v_z_pa = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[1]); if (unlikely(!__pyx_v_z_pa.memview)) __PYX_ERR(0, 119, __pyx_L3_error)
+    __pyx_v_u_pa = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[2]); if (unlikely(!__pyx_v_u_pa.memview)) __PYX_ERR(0, 120, __pyx_L3_error)
+    __pyx_v_lbda_pa = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_lbda_pa == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 121, __pyx_L3_error)
+    __pyx_v_sibling = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[4]); if (unlikely(!__pyx_v_sibling.memview)) __PYX_ERR(0, 122, __pyx_L3_error)
+    __pyx_v_child = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[5]); if (unlikely(!__pyx_v_child.memview)) __PYX_ERR(0, 123, __pyx_L3_error)
+    __pyx_v_lbda = __pyx_PyFloat_AsFloat(values[6]); if (unlikely((__pyx_v_lbda == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 124, __pyx_L3_error)
+    __pyx_v_prior = __pyx_PyFloat_AsFloat(values[7]); if (unlikely((__pyx_v_prior == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 125, __pyx_L3_error)
+    __pyx_v_sampling_indicator = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[8]); if (unlikely(!__pyx_v_sampling_indicator.memview)) __PYX_ERR(0, 126, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 119, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("draw_oneparent_onechild", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 118, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cython_functions.draw_oneparent_onechild", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4624,7 +4628,7 @@ static PyObject *__pyx_pf_16cython_functions_10draw_oneparent_onechild(CYTHON_UN
   Py_ssize_t __pyx_t_14;
   __Pyx_RefNannySetupContext("draw_oneparent_onechild", 0);
 
-  /* "cython_functions.pyx":130
+  /* "cython_functions.pyx":129
  * 
  *     cdef float p, acc_par, acc_child
  *     cdef int n, d, N = x.shape[0], D=x.shape[1]             # <<<<<<<<<<<<<<
@@ -4634,7 +4638,7 @@ static PyObject *__pyx_pf_16cython_functions_10draw_oneparent_onechild(CYTHON_UN
   __pyx_v_N = (__pyx_v_x.shape[0]);
   __pyx_v_D = (__pyx_v_x.shape[1]);
 
-  /* "cython_functions.pyx":131
+  /* "cython_functions.pyx":130
  *     cdef float p, acc_par, acc_child
  *     cdef int n, d, N = x.shape[0], D=x.shape[1]
  *     for n in prange(N, schedule=dynamic, nogil=True):             # <<<<<<<<<<<<<<
@@ -4691,7 +4695,7 @@ static PyObject *__pyx_pf_16cython_functions_10draw_oneparent_onechild(CYTHON_UN
                             __pyx_v_d = ((int)0xbad0bad0);
                             __pyx_v_p = ((float)__PYX_NAN());
 
-                            /* "cython_functions.pyx":132
+                            /* "cython_functions.pyx":131
  *     cdef int n, d, N = x.shape[0], D=x.shape[1]
  *     for n in prange(N, schedule=dynamic, nogil=True):
  *         for d in range(D):             # <<<<<<<<<<<<<<
@@ -4702,7 +4706,7 @@ static PyObject *__pyx_pf_16cython_functions_10draw_oneparent_onechild(CYTHON_UN
                             for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
                               __pyx_v_d = __pyx_t_5;
 
-                              /* "cython_functions.pyx":133
+                              /* "cython_functions.pyx":132
  *     for n in prange(N, schedule=dynamic, nogil=True):
  *         for d in range(D):
  *             if sampling_indicator[n,d] is True:             # <<<<<<<<<<<<<<
@@ -4714,7 +4718,7 @@ static PyObject *__pyx_pf_16cython_functions_10draw_oneparent_onechild(CYTHON_UN
                               __pyx_t_8 = (((*((__pyx_t_16cython_functions_data_type_t *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sampling_indicator.data + __pyx_t_6 * __pyx_v_sampling_indicator.strides[0]) ) + __pyx_t_7 * __pyx_v_sampling_indicator.strides[1]) ))) == 1) != 0);
                               if (__pyx_t_8) {
 
-                                /* "cython_functions.pyx":135
+                                /* "cython_functions.pyx":134
  *             if sampling_indicator[n,d] is True:
  * 
  *                 acc_par = lbda_pa*compute_g_alt_tilde_unified(u_pa[d,:], z_pa[n,:])             # <<<<<<<<<<<<<<
@@ -4738,7 +4742,7 @@ static PyObject *__pyx_pf_16cython_functions_10draw_oneparent_onechild(CYTHON_UN
             #ifdef WITH_THREAD
             PyGILState_Release(__pyx_gilstate_save);
             #endif
-        __PYX_ERR(0, 135, __pyx_L8_error)
+        __PYX_ERR(0, 134, __pyx_L8_error)
     }
         __pyx_t_9.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4764,7 +4768,7 @@ __pyx_t_10.data = __pyx_v_z_pa.data;
             #ifdef WITH_THREAD
             PyGILState_Release(__pyx_gilstate_save);
             #endif
-        __PYX_ERR(0, 135, __pyx_L8_error)
+        __PYX_ERR(0, 134, __pyx_L8_error)
     }
         __pyx_t_10.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4781,7 +4785,7 @@ __pyx_v_acc_par = (__pyx_v_lbda_pa * __pyx_f_16cython_functions_compute_g_alt_ti
                                 __pyx_t_10.memview = NULL;
                                 __pyx_t_10.data = NULL;
 
-                                /* "cython_functions.pyx":137
+                                /* "cython_functions.pyx":136
  *                 acc_par = lbda_pa*compute_g_alt_tilde_unified(u_pa[d,:], z_pa[n,:])
  * 
  *                 acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)             # <<<<<<<<<<<<<<
@@ -4805,7 +4809,7 @@ __pyx_v_acc_par = (__pyx_v_lbda_pa * __pyx_f_16cython_functions_compute_g_alt_ti
             #ifdef WITH_THREAD
             PyGILState_Release(__pyx_gilstate_save);
             #endif
-        __PYX_ERR(0, 137, __pyx_L8_error)
+        __PYX_ERR(0, 136, __pyx_L8_error)
     }
         __pyx_t_10.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4831,7 +4835,7 @@ __pyx_t_9.data = __pyx_v_x.data;
             #ifdef WITH_THREAD
             PyGILState_Release(__pyx_gilstate_save);
             #endif
-        __PYX_ERR(0, 137, __pyx_L8_error)
+        __PYX_ERR(0, 136, __pyx_L8_error)
     }
         __pyx_t_9.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4848,7 +4852,7 @@ __pyx_v_acc_child = (__pyx_v_lbda * __pyx_f_16cython_functions_score_no_parents_
                                 __pyx_t_9.memview = NULL;
                                 __pyx_t_9.data = NULL;
 
-                                /* "cython_functions.pyx":139
+                                /* "cython_functions.pyx":138
  *                 acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)
  * 
  *                 p = sigmoid(acc_par + acc_child + prior)             # <<<<<<<<<<<<<<
@@ -4857,12 +4861,12 @@ __pyx_v_acc_child = (__pyx_v_lbda * __pyx_f_16cython_functions_score_no_parents_
  */
                                 __pyx_v_p = __pyx_f_16cython_functions_sigmoid(((__pyx_v_acc_par + __pyx_v_acc_child) + __pyx_v_prior));
 
-                                /* "cython_functions.pyx":141
+                                /* "cython_functions.pyx":140
  *                 p = sigmoid(acc_par + acc_child + prior)
  * 
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])             # <<<<<<<<<<<<<<
- * # def draw_two_parents_onechild
- * 
+ * def bernoulli_prior():
+ *     return 0
  */
                                 __pyx_t_11 = __pyx_v_n;
                                 __pyx_t_12 = __pyx_v_d;
@@ -4870,7 +4874,7 @@ __pyx_v_acc_child = (__pyx_v_lbda * __pyx_f_16cython_functions_score_no_parents_
                                 __pyx_t_14 = __pyx_v_d;
                                 *((__pyx_t_16cython_functions_data_type_t *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_13 * __pyx_v_x.strides[0]) ) + __pyx_t_14 * __pyx_v_x.strides[1]) )) = __pyx_f_16cython_functions_swap_metropolised_gibbs_unified(__pyx_v_p, (*((__pyx_t_16cython_functions_data_type_t *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_11 * __pyx_v_x.strides[0]) ) + __pyx_t_12 * __pyx_v_x.strides[1]) ))));
 
-                                /* "cython_functions.pyx":133
+                                /* "cython_functions.pyx":132
  *     for n in prange(N, schedule=dynamic, nogil=True):
  *         for d in range(D):
  *             if sampling_indicator[n,d] is True:             # <<<<<<<<<<<<<<
@@ -4970,7 +4974,7 @@ __pyx_v_acc_child = (__pyx_v_lbda * __pyx_f_16cython_functions_score_no_parents_
         #endif
       }
 
-      /* "cython_functions.pyx":131
+      /* "cython_functions.pyx":130
  *     cdef float p, acc_par, acc_child
  *     cdef int n, d, N = x.shape[0], D=x.shape[1]
  *     for n in prange(N, schedule=dynamic, nogil=True):             # <<<<<<<<<<<<<<
@@ -4994,7 +4998,7 @@ __pyx_v_acc_child = (__pyx_v_lbda * __pyx_f_16cython_functions_score_no_parents_
       }
   }
 
-  /* "cython_functions.pyx":119
+  /* "cython_functions.pyx":118
  *                 p = sigmoid(acc_par + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
  * def draw_oneparent_onechild(data_type_t[:,:] x,  # N x D             # <<<<<<<<<<<<<<
@@ -5022,15 +5026,69 @@ __pyx_v_acc_child = (__pyx_v_lbda * __pyx_f_16cython_functions_score_no_parents_
   return __pyx_r;
 }
 
-/* "cython_functions.pyx":147
- * # @cython.wraparound(False)
- * # @cython.boundscheck(False)
+/* "cython_functions.pyx":141
+ * 
+ *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
+ * def bernoulli_prior():             # <<<<<<<<<<<<<<
+ *     return 0
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_16cython_functions_13bernoulli_prior(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyMethodDef __pyx_mdef_16cython_functions_13bernoulli_prior = {"bernoulli_prior", (PyCFunction)__pyx_pw_16cython_functions_13bernoulli_prior, METH_NOARGS, 0};
+static PyObject *__pyx_pw_16cython_functions_13bernoulli_prior(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("bernoulli_prior (wrapper)", 0);
+  __pyx_r = __pyx_pf_16cython_functions_12bernoulli_prior(__pyx_self);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_16cython_functions_12bernoulli_prior(CYTHON_UNUSED PyObject *__pyx_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("bernoulli_prior", 0);
+
+  /* "cython_functions.pyx":142
+ *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
+ * def bernoulli_prior():
+ *     return 0             # <<<<<<<<<<<<<<
+ * 
+ * cpdef inline int compute_g_alt_tilde_unified(data_type_t[:] u,
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_int_0);
+  __pyx_r = __pyx_int_0;
+  goto __pyx_L0;
+
+  /* "cython_functions.pyx":141
+ * 
+ *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
+ * def bernoulli_prior():             # <<<<<<<<<<<<<<
+ *     return 0
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cython_functions.pyx":144
+ *     return 0
+ * 
  * cpdef inline int compute_g_alt_tilde_unified(data_type_t[:] u,             # <<<<<<<<<<<<<<
  *                                             data_type_t[:] z) nogil:
  *     """
  */
 
-static PyObject *__pyx_pw_16cython_functions_13compute_g_alt_tilde_unified(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_16cython_functions_15compute_g_alt_tilde_unified(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static CYTHON_INLINE int __pyx_f_16cython_functions_compute_g_alt_tilde_unified(__Pyx_memviewslice __pyx_v_u, __Pyx_memviewslice __pyx_v_z, CYTHON_UNUSED int __pyx_skip_dispatch) {
   int __pyx_v_i;
   int __pyx_r;
@@ -5041,7 +5099,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_compute_g_alt_tilde_unified(
   int __pyx_t_5;
   Py_ssize_t __pyx_t_6;
 
-  /* "cython_functions.pyx":154
+  /* "cython_functions.pyx":151
  *     """
  *     cdef int i
  *     for i in xrange(u.shape[0]):             # <<<<<<<<<<<<<<
@@ -5052,7 +5110,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_compute_g_alt_tilde_unified(
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "cython_functions.pyx":155
+    /* "cython_functions.pyx":152
  *     cdef int i
  *     for i in xrange(u.shape[0]):
  *         if u[i] == 1 and z[i] == 1:             # <<<<<<<<<<<<<<
@@ -5072,7 +5130,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_compute_g_alt_tilde_unified(
     __pyx_L6_bool_binop_done:;
     if (__pyx_t_3) {
 
-      /* "cython_functions.pyx":156
+      /* "cython_functions.pyx":153
  *     for i in xrange(u.shape[0]):
  *         if u[i] == 1 and z[i] == 1:
  *             return 1             # <<<<<<<<<<<<<<
@@ -5082,7 +5140,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_compute_g_alt_tilde_unified(
       __pyx_r = 1;
       goto __pyx_L0;
 
-      /* "cython_functions.pyx":155
+      /* "cython_functions.pyx":152
  *     cdef int i
  *     for i in xrange(u.shape[0]):
  *         if u[i] == 1 and z[i] == 1:             # <<<<<<<<<<<<<<
@@ -5092,7 +5150,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_compute_g_alt_tilde_unified(
     }
   }
 
-  /* "cython_functions.pyx":157
+  /* "cython_functions.pyx":154
  *         if u[i] == 1 and z[i] == 1:
  *             return 1
  *     return -1             # <<<<<<<<<<<<<<
@@ -5102,9 +5160,9 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_compute_g_alt_tilde_unified(
   __pyx_r = -1;
   goto __pyx_L0;
 
-  /* "cython_functions.pyx":147
- * # @cython.wraparound(False)
- * # @cython.boundscheck(False)
+  /* "cython_functions.pyx":144
+ *     return 0
+ * 
  * cpdef inline int compute_g_alt_tilde_unified(data_type_t[:] u,             # <<<<<<<<<<<<<<
  *                                             data_type_t[:] z) nogil:
  *     """
@@ -5116,9 +5174,9 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_compute_g_alt_tilde_unified(
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_16cython_functions_13compute_g_alt_tilde_unified(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_16cython_functions_12compute_g_alt_tilde_unified[] = "\n    for two vectors of same length, u and z, comput\n    2*np.min(1, u^T z)-1\n    ";
-static PyObject *__pyx_pw_16cython_functions_13compute_g_alt_tilde_unified(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_16cython_functions_15compute_g_alt_tilde_unified(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_16cython_functions_14compute_g_alt_tilde_unified[] = "\n    for two vectors of same length, u and z, comput\n    2*np.min(1, u^T z)-1\n    ";
+static PyObject *__pyx_pw_16cython_functions_15compute_g_alt_tilde_unified(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_u = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_z = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_r = 0;
@@ -5144,11 +5202,11 @@ static PyObject *__pyx_pw_16cython_functions_13compute_g_alt_tilde_unified(PyObj
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_z)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_g_alt_tilde_unified", 1, 2, 2, 1); __PYX_ERR(0, 147, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_g_alt_tilde_unified", 1, 2, 2, 1); __PYX_ERR(0, 144, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "compute_g_alt_tilde_unified") < 0)) __PYX_ERR(0, 147, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "compute_g_alt_tilde_unified") < 0)) __PYX_ERR(0, 144, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -5156,33 +5214,33 @@ static PyObject *__pyx_pw_16cython_functions_13compute_g_alt_tilde_unified(PyObj
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_u = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_16cython_functions_data_type_t(values[0]); if (unlikely(!__pyx_v_u.memview)) __PYX_ERR(0, 147, __pyx_L3_error)
-    __pyx_v_z = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_16cython_functions_data_type_t(values[1]); if (unlikely(!__pyx_v_z.memview)) __PYX_ERR(0, 148, __pyx_L3_error)
+    __pyx_v_u = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_16cython_functions_data_type_t(values[0]); if (unlikely(!__pyx_v_u.memview)) __PYX_ERR(0, 144, __pyx_L3_error)
+    __pyx_v_z = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_16cython_functions_data_type_t(values[1]); if (unlikely(!__pyx_v_z.memview)) __PYX_ERR(0, 145, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("compute_g_alt_tilde_unified", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 147, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("compute_g_alt_tilde_unified", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 144, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cython_functions.compute_g_alt_tilde_unified", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16cython_functions_12compute_g_alt_tilde_unified(__pyx_self, __pyx_v_u, __pyx_v_z);
+  __pyx_r = __pyx_pf_16cython_functions_14compute_g_alt_tilde_unified(__pyx_self, __pyx_v_u, __pyx_v_z);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16cython_functions_12compute_g_alt_tilde_unified(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_u, __Pyx_memviewslice __pyx_v_z) {
+static PyObject *__pyx_pf_16cython_functions_14compute_g_alt_tilde_unified(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_u, __Pyx_memviewslice __pyx_v_z) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("compute_g_alt_tilde_unified", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_u.memview)) { __Pyx_RaiseUnboundLocalError("u"); __PYX_ERR(0, 147, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_z.memview)) { __Pyx_RaiseUnboundLocalError("z"); __PYX_ERR(0, 147, __pyx_L1_error) }
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_f_16cython_functions_compute_g_alt_tilde_unified(__pyx_v_u, __pyx_v_z, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 147, __pyx_L1_error)
+  if (unlikely(!__pyx_v_u.memview)) { __Pyx_RaiseUnboundLocalError("u"); __PYX_ERR(0, 144, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_z.memview)) { __Pyx_RaiseUnboundLocalError("z"); __PYX_ERR(0, 144, __pyx_L1_error) }
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_f_16cython_functions_compute_g_alt_tilde_unified(__pyx_v_u, __pyx_v_z, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 144, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -5201,7 +5259,7 @@ static PyObject *__pyx_pf_16cython_functions_12compute_g_alt_tilde_unified(CYTHO
   return __pyx_r;
 }
 
-/* "cython_functions.pyx":161
+/* "cython_functions.pyx":158
  * # @cython.boundscheck(False)
  * # @cython.wraparound(False)
  * cpdef inline float score_no_parents_unified(             # <<<<<<<<<<<<<<
@@ -5209,7 +5267,7 @@ static PyObject *__pyx_pf_16cython_functions_12compute_g_alt_tilde_unified(CYTHO
  *     data_type_t[:] z, # (N x) L
  */
 
-static PyObject *__pyx_pw_16cython_functions_15score_no_parents_unified(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_16cython_functions_17score_no_parents_unified(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(__Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_z, __Pyx_memviewslice __pyx_v_u, int __pyx_v_l, CYTHON_UNUSED int __pyx_skip_dispatch) {
   int __pyx_v_L;
   int __pyx_v_D;
@@ -5231,7 +5289,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
   Py_ssize_t __pyx_t_11;
   Py_ssize_t __pyx_t_12;
 
-  /* "cython_functions.pyx":170
+  /* "cython_functions.pyx":167
  *     """
  * 
  *     cdef int L = u.shape[1]             # <<<<<<<<<<<<<<
@@ -5240,7 +5298,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
  */
   __pyx_v_L = (__pyx_v_u.shape[1]);
 
-  /* "cython_functions.pyx":171
+  /* "cython_functions.pyx":168
  * 
  *     cdef int L = u.shape[1]
  *     cdef int D = u.shape[0]             # <<<<<<<<<<<<<<
@@ -5249,7 +5307,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
  */
   __pyx_v_D = (__pyx_v_u.shape[0]);
 
-  /* "cython_functions.pyx":173
+  /* "cython_functions.pyx":170
  *     cdef int D = u.shape[0]
  *     cdef bint alrdy_active
  *     cdef int score = 0             # <<<<<<<<<<<<<<
@@ -5258,7 +5316,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
  */
   __pyx_v_score = 0;
 
-  /* "cython_functions.pyx":175
+  /* "cython_functions.pyx":172
  *     cdef int score = 0
  * 
  *     for d in range(D):             # <<<<<<<<<<<<<<
@@ -5269,7 +5327,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_d = __pyx_t_2;
 
-    /* "cython_functions.pyx":176
+    /* "cython_functions.pyx":173
  * 
  *     for d in range(D):
  *         if u[d, l] != 1:             # <<<<<<<<<<<<<<
@@ -5281,7 +5339,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
     __pyx_t_5 = (((*((__pyx_t_16cython_functions_data_type_t *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_u.data + __pyx_t_3 * __pyx_v_u.strides[0]) ) + __pyx_t_4 * __pyx_v_u.strides[1]) ))) != 1) != 0);
     if (__pyx_t_5) {
 
-      /* "cython_functions.pyx":177
+      /* "cython_functions.pyx":174
  *     for d in range(D):
  *         if u[d, l] != 1:
  *             continue             # <<<<<<<<<<<<<<
@@ -5290,7 +5348,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
  */
       goto __pyx_L3_continue;
 
-      /* "cython_functions.pyx":176
+      /* "cython_functions.pyx":173
  * 
  *     for d in range(D):
  *         if u[d, l] != 1:             # <<<<<<<<<<<<<<
@@ -5299,7 +5357,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
  */
     }
 
-    /* "cython_functions.pyx":179
+    /* "cython_functions.pyx":176
  *             continue
  * 
  *         alrdy_active = False             # <<<<<<<<<<<<<<
@@ -5308,7 +5366,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
  */
     __pyx_v_alrdy_active = 0;
 
-    /* "cython_functions.pyx":180
+    /* "cython_functions.pyx":177
  * 
  *         alrdy_active = False
  *         for l_prime in range(L):             # <<<<<<<<<<<<<<
@@ -5319,7 +5377,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
     for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
       __pyx_v_l_prime = __pyx_t_7;
 
-      /* "cython_functions.pyx":181
+      /* "cython_functions.pyx":178
  *         alrdy_active = False
  *         for l_prime in range(L):
  *             if (z[l_prime] == 1 and             # <<<<<<<<<<<<<<
@@ -5334,7 +5392,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
         goto __pyx_L9_bool_binop_done;
       }
 
-      /* "cython_functions.pyx":182
+      /* "cython_functions.pyx":179
  *         for l_prime in range(L):
  *             if (z[l_prime] == 1 and
  *                 u[d, l_prime] == 1 and             # <<<<<<<<<<<<<<
@@ -5350,7 +5408,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
         goto __pyx_L9_bool_binop_done;
       }
 
-      /* "cython_functions.pyx":183
+      /* "cython_functions.pyx":180
  *             if (z[l_prime] == 1 and
  *                 u[d, l_prime] == 1 and
  *                 l_prime != l):             # <<<<<<<<<<<<<<
@@ -5361,7 +5419,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
       __pyx_t_5 = __pyx_t_9;
       __pyx_L9_bool_binop_done:;
 
-      /* "cython_functions.pyx":181
+      /* "cython_functions.pyx":178
  *         alrdy_active = False
  *         for l_prime in range(L):
  *             if (z[l_prime] == 1 and             # <<<<<<<<<<<<<<
@@ -5370,7 +5428,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
  */
       if (__pyx_t_5) {
 
-        /* "cython_functions.pyx":184
+        /* "cython_functions.pyx":181
  *                 u[d, l_prime] == 1 and
  *                 l_prime != l):
  *                 alrdy_active = True             # <<<<<<<<<<<<<<
@@ -5379,7 +5437,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
  */
         __pyx_v_alrdy_active = 1;
 
-        /* "cython_functions.pyx":185
+        /* "cython_functions.pyx":182
  *                 l_prime != l):
  *                 alrdy_active = True
  *                 break             # <<<<<<<<<<<<<<
@@ -5388,7 +5446,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
  */
         goto __pyx_L7_break;
 
-        /* "cython_functions.pyx":181
+        /* "cython_functions.pyx":178
  *         alrdy_active = False
  *         for l_prime in range(L):
  *             if (z[l_prime] == 1 and             # <<<<<<<<<<<<<<
@@ -5399,7 +5457,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
     }
     __pyx_L7_break:;
 
-    /* "cython_functions.pyx":187
+    /* "cython_functions.pyx":184
  *                 break
  * 
  *         if (alrdy_active is False):             # <<<<<<<<<<<<<<
@@ -5409,7 +5467,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
     __pyx_t_5 = ((__pyx_v_alrdy_active == 0) != 0);
     if (__pyx_t_5) {
 
-      /* "cython_functions.pyx":188
+      /* "cython_functions.pyx":185
  * 
  *         if (alrdy_active is False):
  *             score += x[d]             # <<<<<<<<<<<<<<
@@ -5419,7 +5477,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
       __pyx_t_12 = __pyx_v_d;
       __pyx_v_score = (__pyx_v_score + (*((__pyx_t_16cython_functions_data_type_t *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_12 * __pyx_v_x.strides[0]) ))));
 
-      /* "cython_functions.pyx":187
+      /* "cython_functions.pyx":184
  *                 break
  * 
  *         if (alrdy_active is False):             # <<<<<<<<<<<<<<
@@ -5430,7 +5488,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
     __pyx_L3_continue:;
   }
 
-  /* "cython_functions.pyx":190
+  /* "cython_functions.pyx":187
  *             score += x[d]
  * 
  *     return score             # <<<<<<<<<<<<<<
@@ -5440,7 +5498,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
   __pyx_r = __pyx_v_score;
   goto __pyx_L0;
 
-  /* "cython_functions.pyx":161
+  /* "cython_functions.pyx":158
  * # @cython.boundscheck(False)
  * # @cython.wraparound(False)
  * cpdef inline float score_no_parents_unified(             # <<<<<<<<<<<<<<
@@ -5454,9 +5512,9 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_score_no_parents_unified(_
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_16cython_functions_15score_no_parents_unified(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_16cython_functions_14score_no_parents_unified[] = "\n    This is essentially algorithm 1 from the ICML paper\n    ";
-static PyObject *__pyx_pw_16cython_functions_15score_no_parents_unified(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_16cython_functions_17score_no_parents_unified(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_16cython_functions_16score_no_parents_unified[] = "\n    This is essentially algorithm 1 from the ICML paper\n    ";
+static PyObject *__pyx_pw_16cython_functions_17score_no_parents_unified(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_x = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_z = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_u = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -5486,21 +5544,21 @@ static PyObject *__pyx_pw_16cython_functions_15score_no_parents_unified(PyObject
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_z)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("score_no_parents_unified", 1, 4, 4, 1); __PYX_ERR(0, 161, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("score_no_parents_unified", 1, 4, 4, 1); __PYX_ERR(0, 158, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_u)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("score_no_parents_unified", 1, 4, 4, 2); __PYX_ERR(0, 161, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("score_no_parents_unified", 1, 4, 4, 2); __PYX_ERR(0, 158, __pyx_L3_error)
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_l)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("score_no_parents_unified", 1, 4, 4, 3); __PYX_ERR(0, 161, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("score_no_parents_unified", 1, 4, 4, 3); __PYX_ERR(0, 158, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "score_no_parents_unified") < 0)) __PYX_ERR(0, 161, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "score_no_parents_unified") < 0)) __PYX_ERR(0, 158, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -5510,36 +5568,36 @@ static PyObject *__pyx_pw_16cython_functions_15score_no_parents_unified(PyObject
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_16cython_functions_data_type_t(values[0]); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 162, __pyx_L3_error)
-    __pyx_v_z = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_16cython_functions_data_type_t(values[1]); if (unlikely(!__pyx_v_z.memview)) __PYX_ERR(0, 163, __pyx_L3_error)
-    __pyx_v_u = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[2]); if (unlikely(!__pyx_v_u.memview)) __PYX_ERR(0, 164, __pyx_L3_error)
-    __pyx_v_l = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_l == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 165, __pyx_L3_error)
+    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_16cython_functions_data_type_t(values[0]); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 159, __pyx_L3_error)
+    __pyx_v_z = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_16cython_functions_data_type_t(values[1]); if (unlikely(!__pyx_v_z.memview)) __PYX_ERR(0, 160, __pyx_L3_error)
+    __pyx_v_u = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[2]); if (unlikely(!__pyx_v_u.memview)) __PYX_ERR(0, 161, __pyx_L3_error)
+    __pyx_v_l = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_l == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 162, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("score_no_parents_unified", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 161, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("score_no_parents_unified", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 158, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cython_functions.score_no_parents_unified", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16cython_functions_14score_no_parents_unified(__pyx_self, __pyx_v_x, __pyx_v_z, __pyx_v_u, __pyx_v_l);
+  __pyx_r = __pyx_pf_16cython_functions_16score_no_parents_unified(__pyx_self, __pyx_v_x, __pyx_v_z, __pyx_v_u, __pyx_v_l);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16cython_functions_14score_no_parents_unified(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_z, __Pyx_memviewslice __pyx_v_u, int __pyx_v_l) {
+static PyObject *__pyx_pf_16cython_functions_16score_no_parents_unified(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_z, __Pyx_memviewslice __pyx_v_u, int __pyx_v_l) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("score_no_parents_unified", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundLocalError("x"); __PYX_ERR(0, 161, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_z.memview)) { __Pyx_RaiseUnboundLocalError("z"); __PYX_ERR(0, 161, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_u.memview)) { __Pyx_RaiseUnboundLocalError("u"); __PYX_ERR(0, 161, __pyx_L1_error) }
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_f_16cython_functions_score_no_parents_unified(__pyx_v_x, __pyx_v_z, __pyx_v_u, __pyx_v_l, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 161, __pyx_L1_error)
+  if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundLocalError("x"); __PYX_ERR(0, 158, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_z.memview)) { __Pyx_RaiseUnboundLocalError("z"); __PYX_ERR(0, 158, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_u.memview)) { __Pyx_RaiseUnboundLocalError("u"); __PYX_ERR(0, 158, __pyx_L1_error) }
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_f_16cython_functions_score_no_parents_unified(__pyx_v_x, __pyx_v_z, __pyx_v_u, __pyx_v_l, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 158, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -5559,7 +5617,7 @@ static PyObject *__pyx_pf_16cython_functions_14score_no_parents_unified(CYTHON_U
   return __pyx_r;
 }
 
-/* "cython_functions.pyx":196
+/* "cython_functions.pyx":193
  * # @cython.wraparound(False)
  * @cython.cdivision(True)
  * cdef inline int swap_metropolised_gibbs_unified(float p, data_type_t x) nogil:             # <<<<<<<<<<<<<<
@@ -5572,7 +5630,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
   int __pyx_r;
   int __pyx_t_1;
 
-  /* "cython_functions.pyx":198
+  /* "cython_functions.pyx":195
  * cdef inline int swap_metropolised_gibbs_unified(float p, data_type_t x) nogil:
  *     cdef float alpha
  *     if x == 1:             # <<<<<<<<<<<<<<
@@ -5582,7 +5640,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
   __pyx_t_1 = ((__pyx_v_x == 1) != 0);
   if (__pyx_t_1) {
 
-    /* "cython_functions.pyx":199
+    /* "cython_functions.pyx":196
  *     cdef float alpha
  *     if x == 1:
  *         if p <= .5:             # <<<<<<<<<<<<<<
@@ -5592,7 +5650,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
     __pyx_t_1 = ((__pyx_v_p <= .5) != 0);
     if (__pyx_t_1) {
 
-      /* "cython_functions.pyx":200
+      /* "cython_functions.pyx":197
  *     if x == 1:
  *         if p <= .5:
  *             alpha = 1             # <<<<<<<<<<<<<<
@@ -5601,7 +5659,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
  */
       __pyx_v_alpha = 1.0;
 
-      /* "cython_functions.pyx":199
+      /* "cython_functions.pyx":196
  *     cdef float alpha
  *     if x == 1:
  *         if p <= .5:             # <<<<<<<<<<<<<<
@@ -5611,7 +5669,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
       goto __pyx_L4;
     }
 
-    /* "cython_functions.pyx":202
+    /* "cython_functions.pyx":199
  *             alpha = 1
  *         else:
  *             alpha = (1-p)/p             # <<<<<<<<<<<<<<
@@ -5623,7 +5681,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
     }
     __pyx_L4:;
 
-    /* "cython_functions.pyx":198
+    /* "cython_functions.pyx":195
  * cdef inline int swap_metropolised_gibbs_unified(float p, data_type_t x) nogil:
  *     cdef float alpha
  *     if x == 1:             # <<<<<<<<<<<<<<
@@ -5633,7 +5691,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
     goto __pyx_L3;
   }
 
-  /* "cython_functions.pyx":204
+  /* "cython_functions.pyx":201
  *             alpha = (1-p)/p
  *     else:
  *         if p >= .5:             # <<<<<<<<<<<<<<
@@ -5644,7 +5702,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
     __pyx_t_1 = ((__pyx_v_p >= .5) != 0);
     if (__pyx_t_1) {
 
-      /* "cython_functions.pyx":205
+      /* "cython_functions.pyx":202
  *     else:
  *         if p >= .5:
  *             alpha = 1             # <<<<<<<<<<<<<<
@@ -5653,7 +5711,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
  */
       __pyx_v_alpha = 1.0;
 
-      /* "cython_functions.pyx":204
+      /* "cython_functions.pyx":201
  *             alpha = (1-p)/p
  *     else:
  *         if p >= .5:             # <<<<<<<<<<<<<<
@@ -5663,7 +5721,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
       goto __pyx_L5;
     }
 
-    /* "cython_functions.pyx":207
+    /* "cython_functions.pyx":204
  *             alpha = 1
  *         else:
  *             alpha = p/(1-p)             # <<<<<<<<<<<<<<
@@ -5677,7 +5735,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
   }
   __pyx_L3:;
 
-  /* "cython_functions.pyx":208
+  /* "cython_functions.pyx":205
  *         else:
  *             alpha = p/(1-p)
  *     if rand()/float(RAND_MAX) < alpha:             # <<<<<<<<<<<<<<
@@ -5687,7 +5745,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
   __pyx_t_1 = (((((double)rand()) / ((double)RAND_MAX)) < __pyx_v_alpha) != 0);
   if (__pyx_t_1) {
 
-    /* "cython_functions.pyx":209
+    /* "cython_functions.pyx":206
  *             alpha = p/(1-p)
  *     if rand()/float(RAND_MAX) < alpha:
  *         return -x             # <<<<<<<<<<<<<<
@@ -5697,7 +5755,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
     __pyx_r = (-__pyx_v_x);
     goto __pyx_L0;
 
-    /* "cython_functions.pyx":208
+    /* "cython_functions.pyx":205
  *         else:
  *             alpha = p/(1-p)
  *     if rand()/float(RAND_MAX) < alpha:             # <<<<<<<<<<<<<<
@@ -5706,7 +5764,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
  */
   }
 
-  /* "cython_functions.pyx":211
+  /* "cython_functions.pyx":208
  *         return -x
  *     else:
  *         return x             # <<<<<<<<<<<<<<
@@ -5718,7 +5776,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
     goto __pyx_L0;
   }
 
-  /* "cython_functions.pyx":196
+  /* "cython_functions.pyx":193
  * # @cython.wraparound(False)
  * @cython.cdivision(True)
  * cdef inline int swap_metropolised_gibbs_unified(float p, data_type_t x) nogil:             # <<<<<<<<<<<<<<
@@ -5731,7 +5789,7 @@ static CYTHON_INLINE int __pyx_f_16cython_functions_swap_metropolised_gibbs_unif
   return __pyx_r;
 }
 
-/* "cython_functions.pyx":214
+/* "cython_functions.pyx":211
  * 
  * 
  * cdef inline float sigmoid(float x) nogil:             # <<<<<<<<<<<<<<
@@ -5743,7 +5801,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_sigmoid(float __pyx_v_x) {
   float __pyx_v_p;
   float __pyx_r;
 
-  /* "cython_functions.pyx":216
+  /* "cython_functions.pyx":213
  * cdef inline float sigmoid(float x) nogil:
  *     cdef float p
  *     p = 1/(1+exp(-x))             # <<<<<<<<<<<<<<
@@ -5752,7 +5810,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_sigmoid(float __pyx_v_x) {
  */
   __pyx_v_p = (1.0 / (1.0 + exp((-__pyx_v_x))));
 
-  /* "cython_functions.pyx":217
+  /* "cython_functions.pyx":214
  *     cdef float p
  *     p = 1/(1+exp(-x))
  *     return p             # <<<<<<<<<<<<<<
@@ -5762,7 +5820,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_sigmoid(float __pyx_v_x) {
   __pyx_r = __pyx_v_p;
   goto __pyx_L0;
 
-  /* "cython_functions.pyx":214
+  /* "cython_functions.pyx":211
  * 
  * 
  * cdef inline float sigmoid(float x) nogil:             # <<<<<<<<<<<<<<
@@ -5775,7 +5833,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_sigmoid(float __pyx_v_x) {
   return __pyx_r;
 }
 
-/* "cython_functions.pyx":220
+/* "cython_functions.pyx":217
  * 
  * 
  * cpdef inline long compute_P_parallel(data_type_t[:,:] x,             # <<<<<<<<<<<<<<
@@ -5783,7 +5841,7 @@ static CYTHON_INLINE float __pyx_f_16cython_functions_sigmoid(float __pyx_v_x) {
  *                                      data_type_t[:,:] z) nogil:
  */
 
-static PyObject *__pyx_pw_16cython_functions_17compute_P_parallel(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_16cython_functions_19compute_P_parallel(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static CYTHON_INLINE long __pyx_f_16cython_functions_compute_P_parallel(__Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_u, __Pyx_memviewslice __pyx_v_z, CYTHON_UNUSED int __pyx_skip_dispatch) {
   long __pyx_v_P;
   int __pyx_v_d;
@@ -5800,7 +5858,7 @@ static CYTHON_INLINE long __pyx_f_16cython_functions_compute_P_parallel(__Pyx_me
   Py_ssize_t __pyx_t_9;
   int __pyx_t_10;
 
-  /* "cython_functions.pyx":224
+  /* "cython_functions.pyx":221
  *                                      data_type_t[:,:] z) nogil:
  *     """ parallelised over n (not d). """
  *     cdef long P = 0             # <<<<<<<<<<<<<<
@@ -5809,7 +5867,7 @@ static CYTHON_INLINE long __pyx_f_16cython_functions_compute_P_parallel(__Pyx_me
  */
   __pyx_v_P = 0;
 
-  /* "cython_functions.pyx":227
+  /* "cython_functions.pyx":224
  *     cdef int d, n
  * 
  *     for n in prange(x.shape[0], schedule=dynamic, nogil=True):             # <<<<<<<<<<<<<<
@@ -5822,7 +5880,7 @@ static CYTHON_INLINE long __pyx_f_16cython_functions_compute_P_parallel(__Pyx_me
       Py_UNBLOCK_THREADS
       #endif
       /*try:*/ {
-        if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundMemoryviewSliceNogil("x"); __PYX_ERR(0, 227, __pyx_L4_error) }
+        if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundMemoryviewSliceNogil("x"); __PYX_ERR(0, 224, __pyx_L4_error) }
         __pyx_t_1 = (__pyx_v_x.shape[0]);
         if (1 == 0) abort();
         {
@@ -5862,7 +5920,7 @@ static CYTHON_INLINE long __pyx_f_16cython_functions_compute_P_parallel(__Pyx_me
                             /* Initialize private variables to invalid values */
                             __pyx_v_d = ((int)0xbad0bad0);
 
-                            /* "cython_functions.pyx":228
+                            /* "cython_functions.pyx":225
  * 
  *     for n in prange(x.shape[0], schedule=dynamic, nogil=True):
  *         for d in range(x.shape[1]):             # <<<<<<<<<<<<<<
@@ -5873,7 +5931,7 @@ static CYTHON_INLINE long __pyx_f_16cython_functions_compute_P_parallel(__Pyx_me
                             for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
                               __pyx_v_d = __pyx_t_5;
 
-                              /* "cython_functions.pyx":229
+                              /* "cython_functions.pyx":226
  *     for n in prange(x.shape[0], schedule=dynamic, nogil=True):
  *         for d in range(x.shape[1]):
  *             if compute_g_alt_tilde_unified(u[d,:], z[n,:]) == x[n, d]:             # <<<<<<<<<<<<<<
@@ -5897,7 +5955,7 @@ static CYTHON_INLINE long __pyx_f_16cython_functions_compute_P_parallel(__Pyx_me
             #ifdef WITH_THREAD
             PyGILState_Release(__pyx_gilstate_save);
             #endif
-        __PYX_ERR(0, 229, __pyx_L8_error)
+        __PYX_ERR(0, 226, __pyx_L8_error)
     }
         __pyx_t_6.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5923,7 +5981,7 @@ __pyx_t_7.data = __pyx_v_z.data;
             #ifdef WITH_THREAD
             PyGILState_Release(__pyx_gilstate_save);
             #endif
-        __PYX_ERR(0, 229, __pyx_L8_error)
+        __PYX_ERR(0, 226, __pyx_L8_error)
     }
         __pyx_t_7.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5943,7 +6001,7 @@ __pyx_t_8 = __pyx_v_n;
                               __pyx_t_7.data = NULL;
                               if (__pyx_t_10) {
 
-                                /* "cython_functions.pyx":230
+                                /* "cython_functions.pyx":227
  *         for d in range(x.shape[1]):
  *             if compute_g_alt_tilde_unified(u[d,:], z[n,:]) == x[n, d]:
  *                 P += 1             # <<<<<<<<<<<<<<
@@ -5951,7 +6009,7 @@ __pyx_t_8 = __pyx_v_n;
  */
                                 __pyx_v_P = (__pyx_v_P + 1);
 
-                                /* "cython_functions.pyx":229
+                                /* "cython_functions.pyx":226
  *     for n in prange(x.shape[0], schedule=dynamic, nogil=True):
  *         for d in range(x.shape[1]):
  *             if compute_g_alt_tilde_unified(u[d,:], z[n,:]) == x[n, d]:             # <<<<<<<<<<<<<<
@@ -6047,7 +6105,7 @@ __pyx_t_8 = __pyx_v_n;
         #endif
       }
 
-      /* "cython_functions.pyx":227
+      /* "cython_functions.pyx":224
  *     cdef int d, n
  * 
  *     for n in prange(x.shape[0], schedule=dynamic, nogil=True):             # <<<<<<<<<<<<<<
@@ -6071,7 +6129,7 @@ __pyx_t_8 = __pyx_v_n;
       }
   }
 
-  /* "cython_functions.pyx":231
+  /* "cython_functions.pyx":228
  *             if compute_g_alt_tilde_unified(u[d,:], z[n,:]) == x[n, d]:
  *                 P += 1
  *     return P             # <<<<<<<<<<<<<<
@@ -6079,7 +6137,7 @@ __pyx_t_8 = __pyx_v_n;
   __pyx_r = __pyx_v_P;
   goto __pyx_L0;
 
-  /* "cython_functions.pyx":220
+  /* "cython_functions.pyx":217
  * 
  * 
  * cpdef inline long compute_P_parallel(data_type_t[:,:] x,             # <<<<<<<<<<<<<<
@@ -6098,9 +6156,9 @@ __pyx_t_8 = __pyx_v_n;
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_16cython_functions_17compute_P_parallel(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_16cython_functions_16compute_P_parallel[] = " parallelised over n (not d). ";
-static PyObject *__pyx_pw_16cython_functions_17compute_P_parallel(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_16cython_functions_19compute_P_parallel(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_16cython_functions_18compute_P_parallel[] = " parallelised over n (not d). ";
+static PyObject *__pyx_pw_16cython_functions_19compute_P_parallel(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_x = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_u = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_z = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -6128,16 +6186,16 @@ static PyObject *__pyx_pw_16cython_functions_17compute_P_parallel(PyObject *__py
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_u)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_P_parallel", 1, 3, 3, 1); __PYX_ERR(0, 220, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_P_parallel", 1, 3, 3, 1); __PYX_ERR(0, 217, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_z)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_P_parallel", 1, 3, 3, 2); __PYX_ERR(0, 220, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_P_parallel", 1, 3, 3, 2); __PYX_ERR(0, 217, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "compute_P_parallel") < 0)) __PYX_ERR(0, 220, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "compute_P_parallel") < 0)) __PYX_ERR(0, 217, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -6146,35 +6204,35 @@ static PyObject *__pyx_pw_16cython_functions_17compute_P_parallel(PyObject *__py
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[0]); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 220, __pyx_L3_error)
-    __pyx_v_u = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[1]); if (unlikely(!__pyx_v_u.memview)) __PYX_ERR(0, 221, __pyx_L3_error)
-    __pyx_v_z = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[2]); if (unlikely(!__pyx_v_z.memview)) __PYX_ERR(0, 222, __pyx_L3_error)
+    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[0]); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 217, __pyx_L3_error)
+    __pyx_v_u = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[1]); if (unlikely(!__pyx_v_u.memview)) __PYX_ERR(0, 218, __pyx_L3_error)
+    __pyx_v_z = __Pyx_PyObject_to_MemoryviewSlice_dsds_nn___pyx_t_16cython_functions_data_type_t(values[2]); if (unlikely(!__pyx_v_z.memview)) __PYX_ERR(0, 219, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("compute_P_parallel", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 220, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("compute_P_parallel", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 217, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cython_functions.compute_P_parallel", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16cython_functions_16compute_P_parallel(__pyx_self, __pyx_v_x, __pyx_v_u, __pyx_v_z);
+  __pyx_r = __pyx_pf_16cython_functions_18compute_P_parallel(__pyx_self, __pyx_v_x, __pyx_v_u, __pyx_v_z);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16cython_functions_16compute_P_parallel(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_u, __Pyx_memviewslice __pyx_v_z) {
+static PyObject *__pyx_pf_16cython_functions_18compute_P_parallel(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_u, __Pyx_memviewslice __pyx_v_z) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("compute_P_parallel", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundLocalError("x"); __PYX_ERR(0, 220, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_u.memview)) { __Pyx_RaiseUnboundLocalError("u"); __PYX_ERR(0, 220, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_z.memview)) { __Pyx_RaiseUnboundLocalError("z"); __PYX_ERR(0, 220, __pyx_L1_error) }
-  __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_f_16cython_functions_compute_P_parallel(__pyx_v_x, __pyx_v_u, __pyx_v_z, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 220, __pyx_L1_error)
+  if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundLocalError("x"); __PYX_ERR(0, 217, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_u.memview)) { __Pyx_RaiseUnboundLocalError("u"); __PYX_ERR(0, 217, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_z.memview)) { __Pyx_RaiseUnboundLocalError("z"); __PYX_ERR(0, 217, __pyx_L1_error) }
+  __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_f_16cython_functions_compute_P_parallel(__pyx_v_x, __pyx_v_u, __pyx_v_z, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -21028,9 +21086,9 @@ static PyTypeObject __pyx_type___pyx_memoryviewslice = {
 };
 
 static PyMethodDef __pyx_methods[] = {
-  {"compute_g_alt_tilde_unified", (PyCFunction)__pyx_pw_16cython_functions_13compute_g_alt_tilde_unified, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16cython_functions_12compute_g_alt_tilde_unified},
-  {"score_no_parents_unified", (PyCFunction)__pyx_pw_16cython_functions_15score_no_parents_unified, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16cython_functions_14score_no_parents_unified},
-  {"compute_P_parallel", (PyCFunction)__pyx_pw_16cython_functions_17compute_P_parallel, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16cython_functions_16compute_P_parallel},
+  {"compute_g_alt_tilde_unified", (PyCFunction)__pyx_pw_16cython_functions_15compute_g_alt_tilde_unified, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16cython_functions_14compute_g_alt_tilde_unified},
+  {"score_no_parents_unified", (PyCFunction)__pyx_pw_16cython_functions_17score_no_parents_unified, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16cython_functions_16score_no_parents_unified},
+  {"compute_P_parallel", (PyCFunction)__pyx_pw_16cython_functions_19compute_P_parallel, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16cython_functions_18compute_P_parallel},
   {0, 0, 0, 0}
 };
 
@@ -21083,6 +21141,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_acc_par, __pyx_k_acc_par, sizeof(__pyx_k_acc_par), 0, 0, 1, 1},
   {&__pyx_n_s_allocate_buffer, __pyx_k_allocate_buffer, sizeof(__pyx_k_allocate_buffer), 0, 0, 1, 1},
   {&__pyx_n_s_base, __pyx_k_base, sizeof(__pyx_k_base), 0, 0, 1, 1},
+  {&__pyx_n_s_bernoulli_prior, __pyx_k_bernoulli_prior, sizeof(__pyx_k_bernoulli_prior), 0, 0, 1, 1},
   {&__pyx_n_s_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 0, 1, 1},
   {&__pyx_n_u_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 1, 0, 1},
   {&__pyx_n_s_child, __pyx_k_child, sizeof(__pyx_k_child), 0, 0, 1, 1},
@@ -21170,9 +21229,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 static int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 29, __pyx_L1_error)
   #if PY_MAJOR_VERSION >= 3
-  __pyx_builtin_xrange = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_xrange) __PYX_ERR(0, 154, __pyx_L1_error)
+  __pyx_builtin_xrange = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_xrange) __PYX_ERR(0, 151, __pyx_L1_error)
   #else
-  __pyx_builtin_xrange = __Pyx_GetBuiltinName(__pyx_n_s_xrange); if (!__pyx_builtin_xrange) __PYX_ERR(0, 154, __pyx_L1_error)
+  __pyx_builtin_xrange = __Pyx_GetBuiltinName(__pyx_n_s_xrange); if (!__pyx_builtin_xrange) __PYX_ERR(0, 151, __pyx_L1_error)
   #endif
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 218, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(1, 799, __pyx_L1_error)
@@ -21471,41 +21530,50 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__27);
   __pyx_codeobj__28 = (PyObject*)__Pyx_PyCode_New(6, 0, 12, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_homes_rukat_hamming_projects_mo, __pyx_n_s_draw_noparents_onechild, 65, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__28)) __PYX_ERR(0, 65, __pyx_L1_error)
 
-  /* "cython_functions.pyx":81
+  /* "cython_functions.pyx":80
  *                 p = sigmoid(acc_child + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
  * def draw_oneparent_nochild(data_type_t[:,:] x,  # N x D             # <<<<<<<<<<<<<<
  *                            data_type_t[:,:] z_pa, # N x Lp
  *                            data_type_t[:,:] u_pa, # D x Lp
  */
-  __pyx_tuple__29 = PyTuple_Pack(12, __pyx_n_s_x, __pyx_n_s_z_pa, __pyx_n_s_u_pa, __pyx_n_s_lbda_pa, __pyx_n_s_prior, __pyx_n_s_sampling_indicator, __pyx_n_s_p, __pyx_n_s_acc_par, __pyx_n_s_n, __pyx_n_s_d, __pyx_n_s_N, __pyx_n_s_D); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 81, __pyx_L1_error)
+  __pyx_tuple__29 = PyTuple_Pack(12, __pyx_n_s_x, __pyx_n_s_z_pa, __pyx_n_s_u_pa, __pyx_n_s_lbda_pa, __pyx_n_s_prior, __pyx_n_s_sampling_indicator, __pyx_n_s_p, __pyx_n_s_acc_par, __pyx_n_s_n, __pyx_n_s_d, __pyx_n_s_N, __pyx_n_s_D); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__29);
   __Pyx_GIVEREF(__pyx_tuple__29);
-  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(6, 0, 12, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_homes_rukat_hamming_projects_mo, __pyx_n_s_draw_oneparent_nochild, 81, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(0, 81, __pyx_L1_error)
+  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(6, 0, 12, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_homes_rukat_hamming_projects_mo, __pyx_n_s_draw_oneparent_nochild, 80, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(0, 80, __pyx_L1_error)
 
-  /* "cython_functions.pyx":97
+  /* "cython_functions.pyx":96
  *                 p = sigmoid(acc_par + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
  * def draw_twoparents_nochild(             # <<<<<<<<<<<<<<
  *         data_type_t[:,:] x,  # N x D
  *         data_type_t[:,:] z_pa1, # N x Lp1
  */
-  __pyx_tuple__31 = PyTuple_Pack(15, __pyx_n_s_x, __pyx_n_s_z_pa1, __pyx_n_s_u_pa1, __pyx_n_s_lbda_pa1, __pyx_n_s_z_pa2, __pyx_n_s_u_pa2, __pyx_n_s_lbda_pa2, __pyx_n_s_prior, __pyx_n_s_sampling_indicator, __pyx_n_s_p, __pyx_n_s_acc_par, __pyx_n_s_n, __pyx_n_s_d, __pyx_n_s_N, __pyx_n_s_D); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 97, __pyx_L1_error)
+  __pyx_tuple__31 = PyTuple_Pack(15, __pyx_n_s_x, __pyx_n_s_z_pa1, __pyx_n_s_u_pa1, __pyx_n_s_lbda_pa1, __pyx_n_s_z_pa2, __pyx_n_s_u_pa2, __pyx_n_s_lbda_pa2, __pyx_n_s_prior, __pyx_n_s_sampling_indicator, __pyx_n_s_p, __pyx_n_s_acc_par, __pyx_n_s_n, __pyx_n_s_d, __pyx_n_s_N, __pyx_n_s_D); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 96, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__31);
   __Pyx_GIVEREF(__pyx_tuple__31);
-  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(9, 0, 15, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__31, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_homes_rukat_hamming_projects_mo, __pyx_n_s_draw_twoparents_nochild, 97, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) __PYX_ERR(0, 97, __pyx_L1_error)
+  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(9, 0, 15, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__31, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_homes_rukat_hamming_projects_mo, __pyx_n_s_draw_twoparents_nochild, 96, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) __PYX_ERR(0, 96, __pyx_L1_error)
 
-  /* "cython_functions.pyx":119
+  /* "cython_functions.pyx":118
  *                 p = sigmoid(acc_par + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
  * def draw_oneparent_onechild(data_type_t[:,:] x,  # N x D             # <<<<<<<<<<<<<<
  *                  data_type_t[:,:] z_pa, # N x Lp
  *                  data_type_t[:,:] u_pa, # D x Lp
  */
-  __pyx_tuple__33 = PyTuple_Pack(16, __pyx_n_s_x, __pyx_n_s_z_pa, __pyx_n_s_u_pa, __pyx_n_s_lbda_pa, __pyx_n_s_sibling, __pyx_n_s_child, __pyx_n_s_lbda, __pyx_n_s_prior, __pyx_n_s_sampling_indicator, __pyx_n_s_p, __pyx_n_s_acc_par, __pyx_n_s_acc_child, __pyx_n_s_n, __pyx_n_s_d, __pyx_n_s_N, __pyx_n_s_D); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __pyx_tuple__33 = PyTuple_Pack(16, __pyx_n_s_x, __pyx_n_s_z_pa, __pyx_n_s_u_pa, __pyx_n_s_lbda_pa, __pyx_n_s_sibling, __pyx_n_s_child, __pyx_n_s_lbda, __pyx_n_s_prior, __pyx_n_s_sampling_indicator, __pyx_n_s_p, __pyx_n_s_acc_par, __pyx_n_s_acc_child, __pyx_n_s_n, __pyx_n_s_d, __pyx_n_s_N, __pyx_n_s_D); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 118, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__33);
   __Pyx_GIVEREF(__pyx_tuple__33);
-  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(9, 0, 16, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_homes_rukat_hamming_projects_mo, __pyx_n_s_draw_oneparent_onechild, 119, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(9, 0, 16, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_homes_rukat_hamming_projects_mo, __pyx_n_s_draw_oneparent_onechild, 118, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) __PYX_ERR(0, 118, __pyx_L1_error)
+
+  /* "cython_functions.pyx":141
+ * 
+ *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
+ * def bernoulli_prior():             # <<<<<<<<<<<<<<
+ *     return 0
+ * 
+ */
+  __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_homes_rukat_hamming_projects_mo, __pyx_n_s_bernoulli_prior, 141, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) __PYX_ERR(0, 141, __pyx_L1_error)
 
   /* "View.MemoryView":282
  *         return self.name
@@ -21514,9 +21582,9 @@ static int __Pyx_InitCachedConstants(void) {
  * cdef strided = Enum("<strided and direct>") # default
  * cdef indirect = Enum("<strided and indirect>")
  */
-  __pyx_tuple__35 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct_or_indirect); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(2, 282, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__35);
-  __Pyx_GIVEREF(__pyx_tuple__35);
+  __pyx_tuple__36 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct_or_indirect); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(2, 282, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__36);
+  __Pyx_GIVEREF(__pyx_tuple__36);
 
   /* "View.MemoryView":283
  * 
@@ -21525,9 +21593,9 @@ static int __Pyx_InitCachedConstants(void) {
  * cdef indirect = Enum("<strided and indirect>")
  * 
  */
-  __pyx_tuple__36 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(2, 283, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__36);
-  __Pyx_GIVEREF(__pyx_tuple__36);
+  __pyx_tuple__37 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(2, 283, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__37);
+  __Pyx_GIVEREF(__pyx_tuple__37);
 
   /* "View.MemoryView":284
  * cdef generic = Enum("<strided and direct or indirect>")
@@ -21536,9 +21604,9 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * 
  */
-  __pyx_tuple__37 = PyTuple_Pack(1, __pyx_kp_s_strided_and_indirect); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(2, 284, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__37);
-  __Pyx_GIVEREF(__pyx_tuple__37);
+  __pyx_tuple__38 = PyTuple_Pack(1, __pyx_kp_s_strided_and_indirect); if (unlikely(!__pyx_tuple__38)) __PYX_ERR(2, 284, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__38);
+  __Pyx_GIVEREF(__pyx_tuple__38);
 
   /* "View.MemoryView":287
  * 
@@ -21547,9 +21615,9 @@ static int __Pyx_InitCachedConstants(void) {
  * cdef indirect_contiguous = Enum("<contiguous and indirect>")
  * 
  */
-  __pyx_tuple__38 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_direct); if (unlikely(!__pyx_tuple__38)) __PYX_ERR(2, 287, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__38);
-  __Pyx_GIVEREF(__pyx_tuple__38);
+  __pyx_tuple__39 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_direct); if (unlikely(!__pyx_tuple__39)) __PYX_ERR(2, 287, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__39);
+  __Pyx_GIVEREF(__pyx_tuple__39);
 
   /* "View.MemoryView":288
  * 
@@ -21558,9 +21626,9 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * 
  */
-  __pyx_tuple__39 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_indirect); if (unlikely(!__pyx_tuple__39)) __PYX_ERR(2, 288, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__39);
-  __Pyx_GIVEREF(__pyx_tuple__39);
+  __pyx_tuple__40 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_indirect); if (unlikely(!__pyx_tuple__40)) __PYX_ERR(2, 288, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__40);
+  __Pyx_GIVEREF(__pyx_tuple__40);
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -21789,40 +21857,52 @@ PyMODINIT_FUNC PyInit_cython_functions(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_draw_noparents_onechild, __pyx_t_2) < 0) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "cython_functions.pyx":81
+  /* "cython_functions.pyx":80
  *                 p = sigmoid(acc_child + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
  * def draw_oneparent_nochild(data_type_t[:,:] x,  # N x D             # <<<<<<<<<<<<<<
  *                            data_type_t[:,:] z_pa, # N x Lp
  *                            data_type_t[:,:] u_pa, # D x Lp
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_16cython_functions_7draw_oneparent_nochild, NULL, __pyx_n_s_cython_functions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 81, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_16cython_functions_7draw_oneparent_nochild, NULL, __pyx_n_s_cython_functions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_draw_oneparent_nochild, __pyx_t_2) < 0) __PYX_ERR(0, 81, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_draw_oneparent_nochild, __pyx_t_2) < 0) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "cython_functions.pyx":97
+  /* "cython_functions.pyx":96
  *                 p = sigmoid(acc_par + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
  * def draw_twoparents_nochild(             # <<<<<<<<<<<<<<
  *         data_type_t[:,:] x,  # N x D
  *         data_type_t[:,:] z_pa1, # N x Lp1
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_16cython_functions_9draw_twoparents_nochild, NULL, __pyx_n_s_cython_functions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 97, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_16cython_functions_9draw_twoparents_nochild, NULL, __pyx_n_s_cython_functions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 96, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_draw_twoparents_nochild, __pyx_t_2) < 0) __PYX_ERR(0, 97, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_draw_twoparents_nochild, __pyx_t_2) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "cython_functions.pyx":119
+  /* "cython_functions.pyx":118
  *                 p = sigmoid(acc_par + prior)
  *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
  * def draw_oneparent_onechild(data_type_t[:,:] x,  # N x D             # <<<<<<<<<<<<<<
  *                  data_type_t[:,:] z_pa, # N x Lp
  *                  data_type_t[:,:] u_pa, # D x Lp
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_16cython_functions_11draw_oneparent_onechild, NULL, __pyx_n_s_cython_functions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_16cython_functions_11draw_oneparent_onechild, NULL, __pyx_n_s_cython_functions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 118, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_draw_oneparent_onechild, __pyx_t_2) < 0) __PYX_ERR(0, 119, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_draw_oneparent_onechild, __pyx_t_2) < 0) __PYX_ERR(0, 118, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "cython_functions.pyx":141
+ * 
+ *                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
+ * def bernoulli_prior():             # <<<<<<<<<<<<<<
+ *     return 0
+ * 
+ */
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_16cython_functions_13bernoulli_prior, NULL, __pyx_n_s_cython_functions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 141, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_bernoulli_prior, __pyx_t_2) < 0) __PYX_ERR(0, 141, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "cython_functions.pyx":1
@@ -21855,7 +21935,7 @@ PyMODINIT_FUNC PyInit_cython_functions(void)
  * cdef strided = Enum("<strided and direct>") # default
  * cdef indirect = Enum("<strided and indirect>")
  */
-  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 282, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__36, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 282, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_XGOTREF(generic);
   __Pyx_DECREF_SET(generic, __pyx_t_2);
@@ -21869,7 +21949,7 @@ PyMODINIT_FUNC PyInit_cython_functions(void)
  * cdef indirect = Enum("<strided and indirect>")
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__36, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 283, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__37, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 283, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_XGOTREF(strided);
   __Pyx_DECREF_SET(strided, __pyx_t_2);
@@ -21883,7 +21963,7 @@ PyMODINIT_FUNC PyInit_cython_functions(void)
  * 
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__37, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 284, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__38, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 284, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_XGOTREF(indirect);
   __Pyx_DECREF_SET(indirect, __pyx_t_2);
@@ -21897,7 +21977,7 @@ PyMODINIT_FUNC PyInit_cython_functions(void)
  * cdef indirect_contiguous = Enum("<contiguous and indirect>")
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__38, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 287, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__39, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 287, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_XGOTREF(contiguous);
   __Pyx_DECREF_SET(contiguous, __pyx_t_2);
@@ -21911,7 +21991,7 @@ PyMODINIT_FUNC PyInit_cython_functions(void)
  * 
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__39, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 288, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__40, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 288, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_XGOTREF(indirect_contiguous);
   __Pyx_DECREF_SET(indirect_contiguous, __pyx_t_2);

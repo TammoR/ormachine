@@ -75,7 +75,6 @@ def draw_noparents_onechild(data_type_t[:,:] x,  # N x D
         for d in range(D):
             if sampling_indicator[n,d] is True:  
                 acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)
-#                 print(lbda, score_no_parents_unified(child[n,:], x[n,:], sibling, d))
                 p = sigmoid(acc_child + prior)
                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])       
 def draw_oneparent_nochild(data_type_t[:,:] x,  # N x D
@@ -139,11 +138,9 @@ def draw_oneparent_onechild(data_type_t[:,:] x,  # N x D
                 p = sigmoid(acc_par + acc_child + prior)
                 
                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])            
-# def draw_two_parents_onechild
-        
+def bernoulli_prior():
+    return 0
                 
-# @cython.wraparound(False)
-# @cython.boundscheck(False)
 cpdef inline int compute_g_alt_tilde_unified(data_type_t[:] u,
                                             data_type_t[:] z) nogil:
     """

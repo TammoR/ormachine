@@ -28,7 +28,6 @@ class trace():
     arrays of posterior traces,
     inherits to machine matrix and lbda instances.
     """
-    
     def __call__(self):
         return self.val
         
@@ -62,12 +61,27 @@ class trace():
             # print('reconstr. accuracy: '+str(r))
             return False
 
+    def set_sampling_fct(self, sampling_fct=None):
+
+        if self.sampling_fct is not None:
+            return
+        
+        # if user provides function, us it
+        if sampling_fct is not None:
+            self.sampling_fct = sampling_fct
+
+        # otherwise infer it
+        else:
+            self.infer_sampling_fct()
+
 class machine_parameter(trace):
     """
     Parameters are attached to corresponding matrices
     """
     
     def __init__(self, val, attached_matrices=None, sampling_indicator=True):
+        self.trace_index = 0
+        self.sampling_fct = None
         self.val = val
         self.attached_matrices = attached_matrices
         self.correct_role_order()
@@ -94,10 +108,18 @@ class machine_parameter(trace):
             pass
         else:
             raise ValueError('something is wrong with the role assignments')
-            
+
+    def infer_sampling_fct(self):
+        """
+        Can interface other functions here easily.
+        """
+        self.sampling_fct = draw_lbda_wrapper
+
     def update(self):
         """
         set lbda to its MLE
+        todo: make this completely modular like the matrix sampling functions.
+        then we can update using priors and implement the maxmachine.
         """
         
         # compute the number of correctly reconstructed data points
@@ -218,8 +240,12 @@ class machine_matrix(trace):
             self.sampling_indicator = np.array(sampling_indicator, dtype=np.int8)
 
     def set_prior(self, bernoulli_prior=None):
+        """
+        prior_fct is a fct that returns the prior for a matrix entry
+        on the logit scale
+        """
+       
         self.bernoulli_prior = bernoulli_prior
-        
         if bernoulli_prior is None:
             self.logit_bernoulli_prior = 0
         else:
@@ -281,7 +307,7 @@ class machine_matrix(trace):
         self.val = np.array(self.mean()>0, dtype=np.int8)
         self.val[self.val==0] = -1
 
-    def set_sampling_fct(self, sampling_fct=None):
+    def infer_sampling_fct(self):
         """
         Assing appropriate sampling function as attribute, depending
         on family status, sampling status etc. or assign sampling_fct
@@ -290,47 +316,41 @@ class machine_matrix(trace):
         """
         # first do some sanity checks, no of children etc. Todo
 
-        if sampling_fct is None:
-            
-            # matrix without child...
-            if not self.child:
-                # ...and one parent
-                if len(self.parent_layers) == 1:                   
-                    if self.role == 'observations':
-                        self.sampling_fct = draw_z_oneparent_nochild_wrapper
-                    elif self.role == 'features':
-                        self.sampling_fct = draw_u_oneparent_nochild_wrapper
-                # ...and two parents
-                if len(self.parent_layers) == 2:
-                    if self.role == 'observations':
-                        self.sampling_fct = draw_z_twoparents_nochild_wrapper
-                    elif self.role == 'features':
-                        self.sampling_fct = draw_u_twoparents_nochild_wrapper
+        # matrix without child...
+        if not self.child:
+            # ...and one parent
+            if len(self.parent_layers) == 1:                   
+                if self.role == 'observations':
+                    self.sampling_fct = draw_z_oneparent_nochild_wrapper
+                elif self.role == 'features':
+                    self.sampling_fct = draw_u_oneparent_nochild_wrapper
+            # ...and two parents
+            if len(self.parent_layers) == 2:
+                if self.role == 'observations':
+                    self.sampling_fct = draw_z_twoparents_nochild_wrapper
+                elif self.role == 'features':
+                    self.sampling_fct = draw_u_twoparents_nochild_wrapper
 
-            # matrix with one child...
-            elif self.child:
-                # ... and no parent
-                if not self.parents:
-                    if self.role == 'observations':
-                        self.sampling_fct = draw_z_noparents_onechild_wrapper
-                    elif self.role == 'features':
-                        self.sampling_fct = draw_u_noparents_onechild_wrapper                    
-                # ... and one parent 
-                elif len(self.parent_layers) == 1:
-                    if self.role == 'observations':
-                        self.sampling_fct = draw_z_oneparent_onechild_wrapper
-                    elif self.role == 'features':
-                        self.sampling_fct = draw_u_oneparent_onechild_wrapper       
-                # ... and two parents (not implemented, throwing error)
-                elif len(self.parent_layers) == 2:
-                    if self.role == 'observations':
-                        self.sampling_fct = draw_z_twoparents_onechild_wrapper
-                    elif self.role == 'features':
-                        self.sampling_fct = draw_u_twoparents_onechild_wrapper       
-
-        elif sampling_fct is not None:
-            self.sampling_fct = sampling_fct
-
+        # matrix with one child...
+        elif self.child:
+            # ... and no parent
+            if not self.parents:
+                if self.role == 'observations':
+                    self.sampling_fct = draw_z_noparents_onechild_wrapper
+                elif self.role == 'features':
+                    self.sampling_fct = draw_u_noparents_onechild_wrapper                    
+            # ... and one parent 
+            elif len(self.parent_layers) == 1:
+                if self.role == 'observations':
+                    self.sampling_fct = draw_z_oneparent_onechild_wrapper
+                elif self.role == 'features':
+                    self.sampling_fct = draw_u_oneparent_onechild_wrapper       
+            # ... and two parents (not implemented, throwing error)
+            elif len(self.parent_layers) == 2:
+                if self.role == 'observations':
+                    self.sampling_fct = draw_z_twoparents_onechild_wrapper
+                elif self.role == 'features':
+                    self.sampling_fct = draw_u_twoparents_onechild_wrapper
         else:
             raise Warning('Sth is wrong with allocting sampling functions')
 
@@ -476,7 +496,7 @@ class machine():
             # draw samples
             [mat.sampling_fct(mat) for mat in mats]
             if pre_burn_in_iter > fix_lbda_iters:
-                [lbda.update() for lbda in lbdas]
+                [lbda.sampling_fct(lbda) for lbda in lbdas]
                 shuffle(mats)
 
                     
@@ -519,7 +539,7 @@ class machine():
             
             # draw sampels
             [mat.sampling_fct(mat) for mat in mats]
-            [lbda.update() for lbda in lbdas]
+            [lbda.sampling_fct(lbda) for lbda in lbdas]
             [x.update_trace() for x in lbdas]
             shuffle(mats)
             # 
@@ -546,11 +566,6 @@ class machine():
             mats = self.members
         mats = [mat for mat in mats if not np.all(mat.sampling_indicator == 0)]
 
-        # assign sampling function to each mat
-        for mat in mats:
-            if not mat.sampling_fct:
-                    mat.set_sampling_fct()
-
         # list of parameters (lbdas) of matrix and parents
         lbdas = []
         for mat in mats:
@@ -559,6 +574,11 @@ class machine():
                 lbdas.append(mat.parents[0].lbda)
         # remove dubplicates preserving order
         lbdas = [x for x in unique_ordered(lbdas) if x is not None]
+
+        # assign sampling function to each mat
+        for thing_to_update in mats+lbdas:
+            if not thing_to_update.sampling_fct:
+                thing_to_update.set_sampling_fct()
 
         # make sure all trace indicies are zero
         for mat in mats:
@@ -594,7 +614,7 @@ class machine():
             [mat.update_trace() for mat in mats]
 
             # sample lbdas and write to trace
-            [lbda.update() for lbda in lbdas]
+            [lbda.sampling_fct(lbda) for lbda in lbdas]
             [lbda.update_trace() for lbda in lbdas]
 
             if sampling_iter % print_step == 0:
@@ -696,7 +716,23 @@ def draw_u_oneparent_onechild_wrapper(mat):
         mat.logit_bernoulli_prior,
         mat.sampling_indicator)
 
+def draw_lbda_wrapper(parm):
 
+    P = cf.compute_P_parallel(parm.attached_matrices[0].child(),
+                                parm.attached_matrices[1](),
+                                parm.attached_matrices[0]())
+
+    # effectie number of observations (precompute for speedup TODO (not crucial))
+    ND = (np.prod(parm.attached_matrices[0].child().shape) -\
+                    np.sum(parm.attached_matrices[0].child() == 0))
+
+    # set to MLE ( exp(-lbda_mle) = ND/P - 1 )
+    if ND==P:
+        parm.val = 10e10
+    else:
+        parm.val = np.max([0, np.min([1000,-np.log(ND/float(P)-1)])])       
+
+    
 # missing: twoparents_onechild, (arbitraryparents_onechild, arbitaryparents_nochild)
 # unified wrapper aren't working
 def draw_unified_wrapper_z(mat):
@@ -722,4 +758,3 @@ def draw_unified_wrapper_u(mat):
         mat.lbda(), # own parameter: double
         mat.logit_bernoulli_prior,
         mat.sampling_indicator)
-
