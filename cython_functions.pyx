@@ -13,86 +13,47 @@ data_type = np.int8
 ctypedef np.int8_t data_type_t
 
 
-# unified sampling is deprecated
-def draw_unified(data_type_t[:,:] x,  # N x D
-                 data_type_t[:,:,:] z_pa, # K x N x Lp 
-                 data_type_t[:,:,:] u_pa, # K x D x Lp
-                 double[:] lbda_pa, # K
-                 data_type_t[:,:] sibling, # D x Lc
-                 data_type_t[:,:] child, # N x Lc
-                 float lbda,
-                 float prior,
-                 data_type_t[:,:] sampling_indicator): # N x D
-    
-    cdef float p, acc_par, acc_child
-    cdef int n, d, K = len(lbda_pa), N = x.shape[0], D=x.shape[1]
-    for n in range(N): # parallelise
-        for d in range(D):
-            if sampling_indicator[n,d] is True:
-                # accumulate over all parents
-                acc_par = 0
-                for k in range(K):
-                    acc_par += lbda_pa[k]*compute_g_alt_tilde_unified(u_pa[k,d,:], z_pa[k,n,:])
-                    
-                acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)  
-                
-                p = sigmoid(acc_par + acc_child + prior)
-                x[n, d] = swap_metropolised_gibbs_unified(p,x[n,d])            
-def draw_unified_nochild(data_type_t[:,:] x,  # N x D
-                         data_type_t[:,:,:] z_pa, # K x N x Lp 
-                         data_type_t[:,:,:] u_pa, # K x D x Lp
-                         double[:] lbda_pa, # K
-                         float prior,
-                         data_type_t[:,:] sampling_indicator): # N x D
-    """
-    not working for multiple parents. fix. todo
-    """
-                             
-    cdef float p, acc_par
-    cdef int n, d, K = len(lbda_pa), N=x.shape[0], D=x.shape[1]
-    for n in range(N): # parallelise
-        for d in range(D):
-            if sampling_indicator[n,d] is True:
-                # accumulate over all parents
-                acc_par = 0
-                for k in range(K):
-                    acc_par += lbda_pa[k]*compute_g_alt_tilde_unified(u_pa[k,d,:], z_pa[k,n,:]) 
-                p = sigmoid(acc_par + prior)
-                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d]) 
 
-
-# sampling functions called from python wrappers
 def draw_noparents_onechild(data_type_t[:,:] x,  # N x D
                            data_type_t[:,:] sibling, # D x Lc
                            data_type_t[:,:] child, # N x Lc
                            float lbda,
                            float prior,
                            data_type_t[:,:] sampling_indicator): # N x D
-    
+                               
     cdef float p, acc_child
-    cdef int n, d, N = x.shape[0], D=x.shape[1]
-    for n in prange(N, schedule=dynamic, nogil=True): # parallelise
+    cdef int n, d, N = x.shape[0], D = x.shape[1]
+    
+    for n in prange(N, schedule=dynamic, nogil=True):
         for d in range(D):
-            if sampling_indicator[n,d] is True:  
+            if sampling_indicator[n,d] is True:
+
+                # compute the posterior
                 acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)
                 p = sigmoid(acc_child + prior)
-                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])       
-def draw_oneparent_nochild(data_type_t[:,:] x,  # N x D
-                           data_type_t[:,:] z_pa, # N x Lp 
-                           data_type_t[:,:] u_pa, # D x Lp
-                           double lbda_pa,
-                           float prior,
-                           data_type_t[:,:] sampling_indicator): # N x D
+
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
+
+
+def draw_oneparent_nochild(
+    data_type_t[:,:] x,  # N x D
+    data_type_t[:,:] z_pa, # N x Lp 
+    data_type_t[:,:] u_pa, # D x Lp
+    double lbda_pa,
+    float prior,
+    data_type_t[:,:] sampling_indicator): # N x D
 
     cdef float p, acc_par
     cdef int n, d, N=x.shape[0], D=x.shape[1]
     for n in prange(N, schedule=dynamic, nogil=True): # parallelise
+    # for n in range(N):
         for d in range(D):
             if sampling_indicator[n,d] is True:
-                # accumulate over all parents
                 acc_par = lbda_pa*compute_g_alt_tilde_unified(u_pa[d,:], z_pa[n,:]) 
                 p = sigmoid(acc_par + prior)
-                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d]) 
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])                           
+
+
 def draw_twoparents_nochild(
         data_type_t[:,:] x,  # N x D
         data_type_t[:,:] z_pa1, # N x Lp1
@@ -109,25 +70,30 @@ def draw_twoparents_nochild(
     for n in prange(N, schedule=dynamic, nogil=True): # parallelise
         for d in range(D):
             if sampling_indicator[n,d] is True:
+               
                 # accumulate over all parents
                 acc_par = lbda_pa1*compute_g_alt_tilde_unified(u_pa1[d,:], z_pa1[n,:]) +\
                   lbda_pa2*compute_g_alt_tilde_unified(u_pa2[d,:], z_pa2[n,:])
 
                 p = sigmoid(acc_par + prior)
-                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d]) 
-def draw_oneparent_onechild(data_type_t[:,:] x,  # N x D
-                 data_type_t[:,:] z_pa, # N x Lp 
-                 data_type_t[:,:] u_pa, # D x Lp
-                 double lbda_pa, 
-                 data_type_t[:,:] sibling, # D x Lc
-                 data_type_t[:,:] child, # N x Lc
-                 float lbda,
-                 float prior,
-                 data_type_t[:,:] sampling_indicator): # N x D
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
+
+
+def draw_oneparent_onechild(
+        data_type_t[:,:] x,  # N x D
+        data_type_t[:,:] z_pa, # N x Lp 
+        data_type_t[:,:] u_pa, # D x Lp
+        double lbda_pa, 
+        data_type_t[:,:] sibling, # D x Lc
+        data_type_t[:,:] child, # N x Lc
+        float lbda,
+        float prior,
+        data_type_t[:,:] sampling_indicator): # N x D
     
     cdef float p, acc_par, acc_child
     cdef int n, d, N = x.shape[0], D=x.shape[1]
     for n in prange(N, schedule=dynamic, nogil=True):
+    # for n in range(N):
         for d in range(D):
             if sampling_indicator[n,d] is True:
 
@@ -137,10 +103,124 @@ def draw_oneparent_onechild(data_type_t[:,:] x,  # N x D
                 
                 p = sigmoid(acc_par + acc_child + prior)
                 
-                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])            
-def bernoulli_prior():
-    return 0
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])           
+
+
+def draw_oneparent_nochild_maxdens(
+    data_type_t[:,:] x,  # N x D
+    data_type_t[:,:] z_pa, # N x Lp 
+    data_type_t[:,:] u_pa, # D x Lp
+    double lbda_pa,
+    float prior,
+    data_type_t[:] max_density,
+    data_type_t[:,:] sampling_indicator): # N x D
+
+    cdef float p, acc_par
+    cdef int n, d, N=x.shape[0], D=x.shape[1]
+    for n in range(N):
+        for d in range(D):
+            if sampling_indicator[n,d] is True:
+
+                if density_magic(x, max_density, n, d):
+                    continue
+
+                # accumulate over all parents
+                acc_par = lbda_pa*compute_g_alt_tilde_unified(u_pa[d,:], z_pa[n,:]) 
+                p = sigmoid(acc_par + prior)
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
+
+
+def draw_twoparents_nochild_maxdens(
+    data_type_t[:,:] x,  # N x D
+    data_type_t[:,:] z_pa1, # N x Lp1
+    data_type_t[:,:] u_pa1, # D x Lp1
+    double lbda_pa1,
+    data_type_t[:,:] z_pa2, # N x Lp2
+    data_type_t[:,:] u_pa2, # D x Lp2
+    double lbda_pa2,
+    float prior,
+    data_type_t[:] max_density,
+    data_type_t[:,:] sampling_indicator): # N x D
+
+    cdef float p, acc_par
+    cdef int n, d, N=x.shape[0], D=x.shape[1]
+    
+    for n in range(N):
+        for d in range(D):
+            if sampling_indicator[n,d] is True:
                 
+                if density_magic(x, max_density, n, d):
+                    continue
+               
+                # accumulate over all parents
+                acc_par = lbda_pa1*compute_g_alt_tilde_unified(u_pa1[d,:], z_pa1[n,:]) +\
+                  lbda_pa2*compute_g_alt_tilde_unified(u_pa2[d,:], z_pa2[n,:])
+
+                p = sigmoid(acc_par + prior)
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
+
+
+def draw_noparents_onechild_maxdens(data_type_t[:,:] x,  # N x D
+                           data_type_t[:,:] sibling, # D x Lc
+                           data_type_t[:,:] child, # N x Lc
+                           float lbda,
+                           float prior,
+                           data_type_t[:] max_density,
+                           data_type_t[:,:] sampling_indicator): # N x D
+                               
+    cdef float p, acc_child
+    cdef int n, d, N = x.shape[0], D = x.shape[1]
+    cdef bint dens_switch
+    
+    for n in range(N):
+        for d in range(D):
+            if sampling_indicator[n,d] is True:
+
+                # check codes are not too dense/sparse if applic.
+                # the function may alter the state of the variable!
+                if density_magic(x, max_density, n, d):
+                    continue
+
+                # compute the posterior
+                acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)
+                p = sigmoid(acc_child + prior)
+
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])               
+                
+
+def draw_oneparent_onechild_maxdens(
+    data_type_t[:,:] x,  # N x D
+    data_type_t[:,:] z_pa, # N x Lp 
+    data_type_t[:,:] u_pa, # D x Lp
+    double lbda_pa, 
+    data_type_t[:,:] sibling, # D x Lc
+    data_type_t[:,:] child, # N x Lc
+    float lbda,
+    float prior,
+    data_type_t[:] max_density,
+    data_type_t[:,:] sampling_indicator): # N x D
+    
+    cdef float p, acc_par, acc_child
+    cdef int n, d, N = x.shape[0], D=x.shape[1]
+
+    for n in range(N):
+        for d in range(D):
+            if sampling_indicator[n,d] is True:
+
+                if density_magic(x, max_density, n, d):
+                    continue
+
+                acc_par = lbda_pa*compute_g_alt_tilde_unified(u_pa[d,:], z_pa[n,:])
+                    
+                acc_child = lbda*score_no_parents_unified(child[n,:],
+                                                          x[n,:], sibling, d)  
+                
+                p = sigmoid(acc_par + acc_child + prior)
+                
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])            
+
+                
+
 cpdef inline int compute_g_alt_tilde_unified(data_type_t[:] u,
                                             data_type_t[:] z) nogil:
     """
@@ -222,7 +302,98 @@ cpdef inline long compute_P_parallel(data_type_t[:,:] x,
     cdef int d, n
 
     for n in prange(x.shape[0], schedule=dynamic, nogil=True):
+    # for n in range(x.shape[0]):
         for d in range(x.shape[1]):
             if compute_g_alt_tilde_unified(u[d,:], z[n,:]) == x[n, d]:
                 P += 1
     return P
+
+
+cpdef int no_of_ones(data_type_t[:] z) nogil:
+    cdef int L = z.shape[0]
+    cdef int acc = 0
+    for i in range(L):
+        if z[i] == 1:
+            acc += 1
+    return acc
+
+
+cpdef bint max_density_checker(data_type_t[:] x, int max_density, int d) nogil:
+    cdef int one_count
+    
+    if max_density != 0:
+        one_count = no_of_ones(x)
+
+        # too many ones in code
+        if one_count > max_density:
+            # if current value is one, set to zero
+            # otherwise, do not update (return True -> no update)
+            if x[d] == 1:
+                x[d] = -1
+            return True
+
+        # maximum no of ones in code
+        elif one_count == max_density:
+            # if current value is one, allow update
+            if x[d] == 1:
+                return False
+            # if current value is -1, do not update
+            elif x[d] == -1:
+                return True
+            
+    return False
+
+
+cpdef bint min_density_checker(data_type_t[:] x, int min_density, int d) nogil:
+    cdef int one_count
+    
+    if min_density != 0:
+        one_count = no_of_ones(x)
+
+        # too many ones in code
+        if one_count < min_density:
+            # if current value is one, set to zero
+            # otherwise, do not update (return True -> no update)
+            if x[d] == -1:
+                x[d] = 1
+            return True
+
+        # maximum no of ones in code
+        elif one_count == min_density:
+            # if current value is one, allow update
+            if x[d] == 1:
+                return False
+            # if current value is -1, do not update
+            elif x[d] == -1:
+                return True
+            
+    return False
+
+
+cpdef bint density_magic(data_type_t[:,:] x,
+                             data_type_t[:] density_conditions,
+                             int n, int d):
+    """
+    return true if max density is reached in either rows or columns.
+    if max density is violated, set x[n,d] from 1 to -1
+    """
+
+    cdef bint update1, update2, update3, update4
+
+    # check whether minimum conditions are met in any dimension
+    update0 = min_density_checker(x[n,:], density_conditions[0], d)
+    update1 = min_density_checker(x[:,d], density_conditions[1], n)
+
+    # if so terminate function
+    if (update0 or update1):
+        return True
+    
+    # if not, check whether maximum conditions are met
+    else:
+        update2 = max_density_checker(x[n,:], density_conditions[2], d)
+        update3 = max_density_checker(x[:,d], density_conditions[3], n)
+
+        return (update2 or update3)
+    
+    return False
+    # if at least one constrained returns True (do NOT update), return True

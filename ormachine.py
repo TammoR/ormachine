@@ -162,8 +162,8 @@ class machine_matrix(trace):
     
     def __init__(self, val=None, shape=None, sibling=None, 
                  parents=None, child=None, lbda=None, bernoulli_prior=.5,
-                 p_init=.5, role=None, sampling_indicator = True,
-                 parent_layers = None):
+                 density_conditions=None, p_init=.5, role=None,
+                 sampling_indicator = True, parent_layers = None):
         """
         role (str): 'features' or 'observations' or 'data'. Try to infer if not provided
         """
@@ -185,7 +185,7 @@ class machine_matrix(trace):
         self.lbda = lbda
         
         # assign prior
-        self.set_prior(bernoulli_prior)
+        self.set_prior(bernoulli_prior, density_conditions)
 
         # ascertain that we have enough information to initiliase the matrix
         assert (val is not None) or (shape is not None and p_init is not None)
@@ -239,11 +239,17 @@ class machine_matrix(trace):
             assert sampling_indicator.shape == self().shape
             self.sampling_indicator = np.array(sampling_indicator, dtype=np.int8)
 
-    def set_prior(self, bernoulli_prior=None):
+    def set_prior(self, bernoulli_prior=None, density_conditions=None):
         """
-        prior_fct is a fct that returns the prior for a matrix entry
-        on the logit scale
+        density_conditions is the max no of ones in each dimension
+        [min_row, min_col, max_row, max_col].
+        zero means unrestricted
         """
+        if density_conditions is None:
+            self.density_conditions = np.array([0,0,0,0], dtype=np.int8)
+        else:
+            assert len(density_conditions) == 4
+            self.density_conditions = np.array(density_conditions, dtype=np.int8)
        
         self.bernoulli_prior = bernoulli_prior
         if bernoulli_prior is None:
@@ -316,43 +322,84 @@ class machine_matrix(trace):
         """
         # first do some sanity checks, no of children etc. Todo
 
-        # matrix without child...
-        if not self.child:
-            # ...and one parent
-            if len(self.parent_layers) == 1:                   
-                if self.role == 'observations':
-                    self.sampling_fct = draw_z_oneparent_nochild_wrapper
-                elif self.role == 'features':
-                    self.sampling_fct = draw_u_oneparent_nochild_wrapper
-            # ...and two parents
-            if len(self.parent_layers) == 2:
-                if self.role == 'observations':
-                    self.sampling_fct = draw_z_twoparents_nochild_wrapper
-                elif self.role == 'features':
-                    self.sampling_fct = draw_u_twoparents_nochild_wrapper
+        # assign different sampling fcts if matrix row/col density is constrained
+        if np.any(self.density_conditions):
+            # matrix without child...
+            if not self.child:
+                # ...and one parent
+                if len(self.parent_layers) == 1:                   
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_oneparent_nochild_maxdens_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_oneparent_nochild_maxdens_wrapper
+                # ...and two parents
+                if len(self.parent_layers) == 2:
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_twoparents_nochild_maxdens_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_twoparents_nochild_maxdens_wrapper
 
-        # matrix with one child...
-        elif self.child:
-            # ... and no parent
-            if not self.parents:
-                if self.role == 'observations':
-                    self.sampling_fct = draw_z_noparents_onechild_wrapper
-                elif self.role == 'features':
-                    self.sampling_fct = draw_u_noparents_onechild_wrapper                    
-            # ... and one parent 
-            elif len(self.parent_layers) == 1:
-                if self.role == 'observations':
-                    self.sampling_fct = draw_z_oneparent_onechild_wrapper
-                elif self.role == 'features':
-                    self.sampling_fct = draw_u_oneparent_onechild_wrapper       
-            # ... and two parents (not implemented, throwing error)
-            elif len(self.parent_layers) == 2:
-                if self.role == 'observations':
-                    self.sampling_fct = draw_z_twoparents_onechild_wrapper
-                elif self.role == 'features':
-                    self.sampling_fct = draw_u_twoparents_onechild_wrapper
+            # matrix with one child...
+            elif self.child:
+                # ... and no parent
+                if not self.parents:
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_noparents_onechild_maxdens_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_noparents_onechild_maxdens_wrapper                    
+                # ... and one parent 
+                elif len(self.parent_layers) == 1:
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_oneparent_onechild_maxdens_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_oneparent_onechild_maxdens_wrapper
+                # ... and two parents (not implemented, throwing error)
+                elif len(self.parent_layers) == 2:
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_twoparents_onechild_maxdens_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_twoparents_onechild_maxdens_wrapper
+            else:
+                raise Warning('Sth is wrong with allocting sampling functions')
+
         else:
-            raise Warning('Sth is wrong with allocting sampling functions')
+            # matrix without child...
+            if not self.child:
+                # ...and one parent
+                if len(self.parent_layers) == 1:                   
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_oneparent_nochild_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_oneparent_nochild_wrapper
+                # ...and two parents
+                if len(self.parent_layers) == 2:
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_twoparents_nochild_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_twoparents_nochild_wrapper
+
+            # matrix with one child...
+            elif self.child:
+                # ... and no parent
+                if not self.parents:
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_noparents_onechild_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_noparents_onechild_wrapper                    
+                # ... and one parent 
+                elif len(self.parent_layers) == 1:
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_oneparent_onechild_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_oneparent_onechild_wrapper       
+                # ... and two parents (not implemented, throwing error)
+                elif len(self.parent_layers) == 2:
+                    if self.role == 'observations':
+                        self.sampling_fct = draw_z_twoparents_onechild_wrapper
+                    elif self.role == 'features':
+                        self.sampling_fct = draw_u_twoparents_onechild_wrapper
+            else:
+                raise Warning('Sth is wrong with allocting sampling functions')
 
 class machine_layer():
     """
@@ -404,11 +451,12 @@ class machine():
         
     def add_matrix(self, val=None, shape=None, sibling=None,
                    parents=None, child=None, lbda=None, p_init=.5,
-                   role=None, sampling_indicator=True, bernoulli_prior=None):
+                   role=None, sampling_indicator=True,
+                   density_conditions=None, bernoulli_prior=None):
 
-        mat = machine_matrix(val, shape, sibling, parents, child, 
-                             lbda, bernoulli_prior, p_init,
-                             role, sampling_indicator)
+        mat = machine_matrix(val, shape, sibling, parents, child,
+                             lbda, bernoulli_prior, density_conditions,
+                             p_init, role, sampling_indicator)
 
         self.members.append(mat)
         return mat
@@ -424,10 +472,12 @@ class machine():
         
     def add_layer(self, size=None, child=None, 
                   lbda_init=1.5, z_init=.5, u_init=.5, 
-                  z_prior=None, u_prior=None):
+                  z_prior=None, u_prior=None,
+                  z_density_conditions=None, u_density_conditions=None):
         """
         This essentially wraps the necessary calls to
         add_parameter, add_matrix
+        z/u_density_conditions: [min_row, min_col, max_row, max_col]
         """
 
         # infer layer shape
@@ -446,10 +496,12 @@ class machine():
             
         z = self.add_matrix(shape=shape_z, 
                             child=child, p_init=z_init, bernoulli_prior=z_prior,
+                            density_conditions=z_density_conditions,
                             role='observations')
         
         u = self.add_matrix(shape=shape_u, sibling=z, 
                             child=child, p_init=u_init, bernoulli_prior=u_prior,
+                            density_conditions=u_density_conditions,
                             role='features')
         
         lbda = self.add_parameter(attached_matrices=(z,u), val=lbda_init)
@@ -629,47 +681,153 @@ class machine():
         # [lbda.update() for lbda in lbdas]
         print('\nfinished.')
     
+def draw_z_oneparent_nochild_maxdens_wrapper(mat):
+    
+    cf.draw_oneparent_nochild_maxdens(
+        mat(), # NxD
+        mat.parents[0](), # parents obs: N x Lp
+        mat.parents[1](), # parents feat: D x Lp
+        mat.parents[0].lbda(), # parent lbdas: 
+        mat.logit_bernoulli_prior,
+        mat.density_conditions,
+        mat.sampling_indicator)
+    
+def draw_u_oneparent_nochild_maxdens_wrapper(mat):
+    
+    cf.draw_oneparent_nochild_maxdens(
+        mat(), # NxD
+        mat.parents[1](), # parents obs: N x Lp
+        mat.parents[0](), # parents feat: D x Lp
+        mat.parents[0].lbda(), # parent lbdas: K (KxL for MaxM)
+        mat.logit_bernoulli_prior,
+        mat.density_conditions,
+        mat.sampling_indicator)    
+        
+def draw_z_twoparents_nochild_maxdens_wrapper(mat):
+
+    cf.draw_twoparents_nochild_maxdens(
+        mat(), # NxD
+        mat.parent_layers[0].z(), # parents obs: N x Lp
+        mat.parent_layers[0].u(), # parents feat: D x Lp
+        mat.parent_layers[0].u.lbda(), # parent lbda
+        mat.parent_layers[1].z(), # parents obs: N x Lp
+        mat.parent_layers[1].u(), # parents feat: D x Lp
+        mat.parent_layers[1].u.lbda(), # parent lbda
+        mat.logit_bernoulli_prior,
+        mat.density_conditions,
+        mat.sampling_indicator)
+    
+def draw_u_twoparents_nochild_maxdens_wrapper(mat):
+
+    cf.draw_twoparents_nochild_maxdens(
+        mat(), # NxD
+        mat.parent_layers[0].u(), # parents obs: N x Lp
+        mat.parent_layers[0].z(), # parents feat: D x Lp
+        mat.parent_layers[0].u.lbda(), # parent lbda
+        mat.parent_layers[1].u(), # parents obs: N x Lp
+        mat.parent_layers[1].z(), # parents feat: D x Lp
+        mat.parent_layers[1].u.lbda(), # parent lbda
+        mat.logit_bernoulli_prior,
+        mat.density_conditions,
+        mat.sampling_indicator)        
+
+def draw_z_noparents_onechild_maxdens_wrapper(mat):
+
+    cf.draw_noparents_onechild_maxdens(
+        mat(),  # NxD
+        mat.sibling(),  # sibling u: D x Lc
+        mat.child(),  # child observation: N x Lc
+        mat.lbda(),  # own parameter: double
+        mat.logit_bernoulli_prior,
+        mat.density_conditions,
+        mat.sampling_indicator)
+    
+def draw_u_noparents_onechild_maxdens_wrapper(mat):
+    
+    cf.draw_noparents_onechild_maxdens(
+        mat(), # NxD
+        mat.sibling(), # sibling u: D x Lc
+        mat.child().transpose(), # child observation: N x Lc
+        mat.lbda(), # own parameter: double
+        mat.logit_bernoulli_prior,
+        mat.density_conditions,
+        mat.sampling_indicator)
+
+def draw_z_oneparent_onechild_maxdens_wrapper(mat):
+
+    cf.draw_oneparent_onechild_maxdens(
+        mat(), # N x D
+        mat.parents[0](), # parent obs: N x Lp
+        mat.parents[1](), # parent features, D x Lp
+        mat.parents[1].lbda(), # parent lbda
+        mat.sibling(), # sibling u: D x Lc
+        mat.child(), # child observation: N x Lc
+        mat.lbda(), # own parameter: double
+        mat.logit_bernoulli_prior,
+        mat.density_conditions,
+        mat.sampling_indicator)
+
+def draw_u_oneparent_onechild_maxdens_wrapper(mat):
+
+    cf.draw_oneparent_onechild_maxdens(
+        mat(), # NxD
+        mat.parents[1](), # parent obs: N x Lp
+        mat.parents[0](), # parent features, D x Lp
+        mat.parents[1].lbda(), # parent lbda
+        mat.sibling(), # sibling u: D x Lc
+        mat.child().transpose(), # child observation: N x Lc
+        mat.lbda(), # own parameter: double
+        mat.logit_bernoulli_prior,
+        mat.density_conditions,
+        mat.sampling_indicator)
+
+
+
 def draw_z_oneparent_nochild_wrapper(mat):
     
-    cf.draw_oneparent_nochild(mat(), # NxD
-                 mat.parents[0](), # parents obs: N x Lp
-                 mat.parents[1](), # parents feat: D x Lp
-                 mat.parents[0].lbda(), # parent lbdas: 
-                 mat.logit_bernoulli_prior,
-                 mat.sampling_indicator)
+    cf.draw_oneparent_nochild(
+        mat(), # NxD
+        mat.parents[0](), # parents obs: N x Lp
+        mat.parents[1](), # parents feat: D x Lp
+        mat.parents[0].lbda(), # parent lbdas: 
+        mat.logit_bernoulli_prior,
+        mat.sampling_indicator)
     
 def draw_u_oneparent_nochild_wrapper(mat):
     
-    cf.draw_oneparent_nochild(mat(), # NxD
-                 mat.parents[1](), # parents obs: N x Lp
-                 mat.parents[0](), # parents feat: D x Lp
-                 mat.parents[0].lbda(), # parent lbdas: K (KxL for MaxM)
-                 mat.logit_bernoulli_prior,
-                 mat.sampling_indicator)    
+    cf.draw_oneparent_nochild(
+        mat(), # NxD
+        mat.parents[1](), # parents obs: N x Lp
+        mat.parents[0](), # parents feat: D x Lp
+        mat.parents[0].lbda(), # parent lbdas: K (KxL for MaxM)
+        mat.logit_bernoulli_prior,
+        mat.sampling_indicator)    
         
 def draw_z_twoparents_nochild_wrapper(mat):
 
-        cf.draw_twoparents_nochild(mat(), # NxD
-                 mat.parent_layers[0].z(), # parents obs: N x Lp
-                 mat.parent_layers[0].u(), # parents feat: D x Lp
-                 mat.parent_layers[0].u.lbda(), # parent lbda
-                 mat.parent_layers[1].z(), # parents obs: N x Lp
-                 mat.parent_layers[1].u(), # parents feat: D x Lp
-                 mat.parent_layers[1].u.lbda(), # parent lbda
-                 mat.logit_bernoulli_prior,
-                 mat.sampling_indicator)
+    cf.draw_twoparents_nochild(
+        mat(), # NxD
+        mat.parent_layers[0].z(), # parents obs: N x Lp
+        mat.parent_layers[0].u(), # parents feat: D x Lp
+        mat.parent_layers[0].u.lbda(), # parent lbda
+        mat.parent_layers[1].z(), # parents obs: N x Lp
+        mat.parent_layers[1].u(), # parents feat: D x Lp
+        mat.parent_layers[1].u.lbda(), # parent lbda
+        mat.logit_bernoulli_prior,
+        mat.sampling_indicator)
     
 def draw_u_twoparents_nochild_wrapper(mat):
 
-        cf.draw_twoparents_nochild(mat(), # NxD
-                 mat.parent_layers[0].u(), # parents obs: N x Lp
-                 mat.parent_layers[0].z(), # parents feat: D x Lp
-                 mat.parent_layers[0].u.lbda(), # parent lbda
-                 mat.parent_layers[1].u(), # parents obs: N x Lp
-                 mat.parent_layers[1].z(), # parents feat: D x Lp
-                 mat.parent_layers[1].u.lbda(), # parent lbda
-                 mat.logit_bernoulli_prior,
-                 mat.sampling_indicator)        
+    cf.draw_twoparents_nochild(
+        mat(), # NxD
+        mat.parent_layers[0].u(), # parents obs: N x Lp
+        mat.parent_layers[0].z(), # parents feat: D x Lp
+        mat.parent_layers[0].u.lbda(), # parent lbda
+        mat.parent_layers[1].u(), # parents obs: N x Lp
+        mat.parent_layers[1].z(), # parents feat: D x Lp
+        mat.parent_layers[1].u.lbda(), # parent lbda
+        mat.logit_bernoulli_prior,
+        mat.sampling_indicator)        
 
 def draw_z_noparents_onechild_wrapper(mat):
 
@@ -683,12 +841,13 @@ def draw_z_noparents_onechild_wrapper(mat):
     
 def draw_u_noparents_onechild_wrapper(mat):
     
-    cf.draw_noparents_onechild(mat(), # NxD
-                 mat.sibling(), # sibling u: D x Lc
-                 mat.child().transpose(), # child observation: N x Lc
-                 mat.lbda(), # own parameter: double
-                 mat.logit_bernoulli_prior,
-                 mat.sampling_indicator)
+    cf.draw_noparents_onechild(
+        mat(), # NxD
+        mat.sibling(), # sibling u: D x Lc
+        mat.child().transpose(), # child observation: N x Lc
+        mat.lbda(), # own parameter: double
+        mat.logit_bernoulli_prior,
+        mat.sampling_indicator)
 
 def draw_z_oneparent_onechild_wrapper(mat):
 
@@ -715,6 +874,8 @@ def draw_u_oneparent_onechild_wrapper(mat):
         mat.lbda(), # own parameter: double
         mat.logit_bernoulli_prior,
         mat.sampling_indicator)
+
+
 
 def draw_lbda_wrapper(parm):
 
