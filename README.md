@@ -16,6 +16,14 @@ If you like to compile the Cython coude yourself
 >>> python3 setup_cythonize.py build_ext --inplace
 ```
 
+## Mac OS X troubleshooting
+If you get an error ```clang: error: : errrorunsupported option '-fopenmp'```,
+point to gcc as your default compiler (possile after installing it using homebrew), e.g. with
+```
+export CC=/usr/local/bin/g++-7
+```
+
+
 ## Basic usage example for a single layer Boolean Matrix Factorisation
 See examples folder for jupyter notebooks.
 
