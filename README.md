@@ -23,6 +23,8 @@ point to gcc as your default compiler (possile after installing it using homebre
 export CC=/usr/local/bin/g++-7
 ```
 
+FOr further MAC troubleshooting see mac_compilation.md.
+
 
 ## Basic usage example for a single layer Boolean Matrix Factorisation
 See examples folder for jupyter notebooks.
