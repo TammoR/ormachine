@@ -1,3 +1,4 @@
+from __future__ import absolute_import, division, print_function # for python2 support
 import numpy as np
 from numpy.random import binomial
 #import cython
@@ -33,7 +34,9 @@ class trace():
         
     def allocate_trace_arrays(self, no_of_samples):
         if type(self.val) == np.ndarray:
-            self.trace = np.empty([no_of_samples, *self.val.shape], dtype=np.int8)
+            # nicer but no python2 compatible
+            # self.trace = np.empty([no_of_samples, *self.val.shape], dtype=np.int8)        
+            self.trace = np.empty([no_of_samples]+[x for x in self.val.shape], dtype=np.int8)
         else:
             self.trace = np.empty([no_of_samples], dtype=np.float32)
         
