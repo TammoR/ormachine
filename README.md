@@ -73,10 +73,4 @@ independent of whether we use OpenMP or not. More about this error on [stackover
 
 Seems to be solved [here](https://stackoverflow.com/questions/40234807/python-c-extension-with-openmp-for-os-x). Not sure how to apply this.
 
-### Misc
-* Do we cast types when reading out array shape (64 to 32 bit or sth?)
-
-* Related issue: [stackoverflow](https://stackoverflow.com/questions/40234807/python-c-extension-with-openmp-for-os-x)
-
-
 
