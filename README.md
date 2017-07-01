@@ -16,6 +16,8 @@ If you like to compile the Cython coude yourself
 >>> python3 setup.py build_ext --inplace
 ```
 
+Multi-core support comes from OpenMP. For single core use, remove the corresponding flags in the setup.py.
+
 ## Basic usage example for a single layer Boolean Matrix Factorisation
 See examples folder for jupyter notebooks.
 
