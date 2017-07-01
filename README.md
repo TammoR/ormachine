@@ -1,20 +1,18 @@
 # The OrMachine
 
-## Dependencies
-Requires numpy, openmp
 ## Installation
+Code is full compatible with Python 2 and 3.
 To install and test the packge run the following commands:
 ```
 >>> git clone https://github.com/TammoR/ormachine
->>> cd ormachine/
->>> pip3 install . --user
-	or >>> python3 setup.py install --user
+>>> cd OrMachine/
+>>> pip3 install .
 >>> python3 tests/test_ormachine.py
 ```
 This test should finish about one second or less.
 If you like to compile the Cython coude yourself
 ```
->>> python3 setup_cythonize.py build_ext --inplace
+>>> python3 setup.py build_ext --inplace
 ```
 
 ## Basic usage example for a single layer Boolean Matrix Factorisation
