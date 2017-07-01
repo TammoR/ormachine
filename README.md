@@ -4,12 +4,13 @@
 Code is full compatible with Python 2 and 3.
 To install and test the packge run the following commands:
 ```
->>> git clone https://github.com/TammoR/ormachine
+>>> git clone https://github.com/TammoR/OrMachine
 >>> cd OrMachine/
 >>> pip3 install .
 >>> python3 tests/test_ormachine.py
 ```
 This test should finish about one second or less.
+
 If you like to compile the Cython coude yourself
 ```
 >>> python3 setup.py build_ext --inplace
