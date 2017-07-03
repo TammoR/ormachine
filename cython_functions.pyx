@@ -397,3 +397,23 @@ cpdef bint density_magic(data_type_t[:,:] x,
     
     return False
     # if at least one constrained returns True (do NOT update), return True
+
+
+
+cpdef void probabilistc_output(double[:,:] x,
+                               double[:,:] u,
+                               double[:,:] z,
+                               double lbda,
+                               int D, int N, int L):
+    cdef float p_dn, sgmd_lbda
+    """
+    p_dn is the probability that every input is zero
+    """
+
+    sgmd_lbda = sigmoid(lbda)
+    for d in range(D):
+        for n in range(N):
+            p_dn = 1
+            for l in range(L):
+                p_dn = p_dn * ( 1 - u[d,l]*z[n,l] )
+            x[n, d] = (sgmd_lbda * (1-p_dn) + (p_dn*(1-sgmd_lbda) ) )
