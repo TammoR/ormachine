@@ -45,7 +45,11 @@ class trace():
         self.trace_index += 1
         
     def mean(self):
-        return np.mean(self.trace, axis=0)
+        if 'trace' in dir(self):
+            return np.mean(self.trace, axis=0)
+        # if no trace is defined, return current state
+        else:
+            return self()
     
     def check_convergence(self, eps):
         """
@@ -436,6 +440,30 @@ class machine_layer():
         assert self.z.child is self.u.child
         return self.z.child
 
+    def output(self, u=None, z=None):
+        """
+        propagate probabilities to child layer
+        u and z are optional and intended for use
+        when propagating through mutliple layers.
+        outputs a probability of x being 1.
+        """
+        if u is None:
+            u = self.u.mean()
+        if z is None:
+            z = self.z.mean()
+
+        L = z.shape[1]
+        N = z.shape[0]
+        D = u.shape[0]
+    
+        x = np.empty((N, D))
+        
+        cf.probabilistc_output(
+            x, .5*(u+1), .5*(z+1), self.lbda.mean(), D, N, L)
+    
+        return x
+
+    
 class machine():
     """
     main class
@@ -474,7 +502,7 @@ class machine():
     
         
     def add_layer(self, size=None, child=None, 
-                  lbda_init=1.5, z_init=.5, u_init=.5, 
+                  lbda_init=1.5, z_init=.5, u_init=0.0, 
                   z_prior=None, u_prior=None,
                   z_density_conditions=None, u_density_conditions=None):
         """
@@ -593,10 +621,11 @@ class machine():
                 break
             
             # draw sampels
+            shuffle(mats)
             [mat.sampling_fct(mat) for mat in mats]
             [lbda.sampling_fct(lbda) for lbda in lbdas]
             [x.update_trace() for x in lbdas]
-            shuffle(mats)
+
             # 
             # print([x.trace_index for x in lbdas], burn_in_iter)
 
@@ -620,6 +649,9 @@ class machine():
         if mats == 'all':
             mats = self.members
         mats = [mat for mat in mats if not np.all(mat.sampling_indicator == 0)]
+
+        # sort from large to small. this is crucial for convergence.
+        # mats = sorted(mats, key=lambda x: x.val.shape[0], reverse=True)
 
         # list of parameters (lbdas) of matrix and parents
         lbdas = []
@@ -662,8 +694,8 @@ class machine():
 
         print('drawing samples...')
         for sampling_iter in range(1, no_samples+1):
-            shuffle(mats)  # TODO
 
+            shuffle(mats)  # TODO
             # sample mats and write to trace
             [mat.sampling_fct(mat) for mat in mats]
             [mat.update_trace() for mat in mats]
