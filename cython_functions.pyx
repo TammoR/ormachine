@@ -100,7 +100,7 @@ def draw_oneparent_onechild(
                 acc_par = lbda_pa*compute_g_alt_tilde_unified(u_pa[d,:], z_pa[n,:])
                     
                 acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)  
-                
+
                 p = sigmoid(acc_par + acc_child + prior)
                 
                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])           
@@ -286,8 +286,27 @@ cdef inline int swap_metropolised_gibbs_unified(float p, data_type_t x) nogil:
         return -x
     else:
         return x
-    
-            
+
+
+cdef inline int swap_gibbs(float p, data_type_t x) nogil:
+    """
+    swap with standard gibbs sampler. can do better sometimes(?)
+    can replace swap_metropolised_gibbs_unified in sampling functions.
+    """
+    if x == 1:
+        if rand()/float(RAND_MAX) > p:
+            return -x
+        else:
+            return x
+    else:
+        if rand()/float(RAND_MAX) < p:
+            return -x
+        else:
+            return x
+
+
+
+
 cdef inline float sigmoid(float x) nogil:
     cdef float p
     p = 1/(1+exp(-x))
@@ -326,7 +345,7 @@ cpdef bint max_density_checker(data_type_t[:] x, int max_density, int d) nogil:
 
         # too many ones in code
         if one_count > max_density:
-            # if current value is one, set to zero
+            # if current value is one, set to zero˜
             # otherwise, do not update (return True -> no update)
             if x[d] == 1:
                 x[d] = -1

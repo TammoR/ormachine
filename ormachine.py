@@ -462,6 +462,28 @@ class machine_layer():
             x, .5*(u+1), .5*(z+1), self.lbda.mean(), D, N, L)
     
         return x
+    def output(self, u=None, z=None):
+        """
+        propagate probabilities to child layer
+        u and z are optional and intended for use
+        when propagating through mutliple layers.
+        outputs a probability of x being 1.
+        """
+        if u is None:
+            u = self.u.mean()
+        if z is None:
+            z = self.z.mean()
+
+        L = z.shape[1]
+        N = z.shape[0]
+        D = u.shape[0]
+    
+        x = np.empty((N, D))
+        
+        cf.probabilistc_output(
+            x, .5*(u+1), .5*(z+1), self.lbda.mean(), D, N, L)
+    
+        return x
 
     
 class machine():
