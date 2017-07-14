@@ -52,7 +52,7 @@ You may also try to fix lbda for hold lbda fixed for the first few iteration:
 hidden = orm.add_layer(size=size, child=data, lbda_init=1.5, z_init=.9, u_init=.1)
 orm.infer(burn_in_max=500, fix_lbda_iters=50)
 ```
-
+Alternatively, centroids from a simple mixture model may provide a good initialisation.
 
 ## Mac OS X troubleshooting
 If you get an error ```clang: error: : errrorunsupported option '-fopenmp'```,
