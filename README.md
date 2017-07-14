@@ -40,6 +40,18 @@ layer1 = orm.add_layer(size=3, child=data, lbda_init=2)
 orm.infer()
 ```
 
+## Convergence issues
+Should you experience lack of convergence (e.g. one factor matrix all 'off', the other uniform random),
+try initialising the larger factor matrix mostly to ones and the smaller factor matrix to zeros. 
+E.g. by defining the hidden layer as follows:
+```
+hidden = orm.add_layer(size=size, child=data, lbda_init=1.6, z_init=.9, u_init=.1)
+```
+You may also try to fix lbda for hold lbda fixed for the first few iteration:
+```
+orm.infer(burn_in_max=500, fix_lbda_iters=50)
+```
+
 
 ## Mac OS X troubleshooting
 If you get an error ```clang: error: : errrorunsupported option '-fopenmp'```,
