@@ -49,6 +49,7 @@ hidden = orm.add_layer(size=size, child=data, lbda_init=1.6, z_init=.9, u_init=.
 ```
 You may also try to fix lbda for hold lbda fixed for the first few iteration:
 ```
+hidden = orm.add_layer(size=size, child=data, lbda_init=1.5, z_init=.9, u_init=.1)
 orm.infer(burn_in_max=500, fix_lbda_iters=50)
 ```
 
