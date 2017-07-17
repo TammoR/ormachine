@@ -6,12 +6,46 @@
 cimport cython
 from cython.parallel import prange, parallel
 from libc.math cimport exp
+from libc.math cimport log
 from libc.stdlib cimport rand, RAND_MAX
 cimport numpy as np
 import numpy as np
+
 data_type = np.int8
 ctypedef np.int8_t data_type_t
 
+data_type2 = np.int16
+ctypedef np.int16_t data_type_t2
+
+
+def draw_noparents_onechild_indpn(data_type_t[:,:] x,  # N x D
+                                  data_type_t[:,:] sibling, # D x Lc
+                                  data_type_t[:,:] child, # N x Lc
+                                  float mu, # TODO, pass mu and lbda as array (prepare for MaxMachine)
+                                  float lbda,
+                                  float prior,
+                                  data_type_t[:,:] sampling_indicator): # N x D
+    """
+    prototype for independent noise model
+    """
+                               
+    cdef float p, acc_child
+    cdef int n, d, M, N = x.shape[0], D = x.shape[1]
+    
+    for n in prange(N, schedule=dynamic, nogil=True):
+        for d in range(D):
+            if sampling_indicator[n,d] is True:
+
+                # compute the posterior
+
+
+                #acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)
+                M = score_no_parents_unified(child[n,:], x[n,:], sibling, d)
+                p = 1 / ( 1 + ( ( 1 + exp( - M * lbda ) )/ ( 1 + exp( M * mu ) ) ) )
+
+                #p = sigmoid(acc_child + prior)
+
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
 
 
 def draw_noparents_onechild(data_type_t[:,:] x,  # N x D
@@ -235,7 +269,7 @@ cpdef inline int compute_g_alt_tilde_unified(data_type_t[:] u,
     
 # @cython.boundscheck(False)
 # @cython.wraparound(False)
-cpdef inline float score_no_parents_unified(
+cpdef inline int score_no_parents_unified(
     data_type_t[:] x, # (N x) D
     data_type_t[:] z, # (N x) L 
     data_type_t[:,:] u, # D x L
@@ -274,7 +308,7 @@ cdef inline int swap_metropolised_gibbs_unified(float p, data_type_t x) nogil:
     cdef float alpha
     if x == 1:
         if p <= .5:
-            alpha = 1
+            alpha = 1 # TODO, can return -x here
         else:
             alpha = (1-p)/p
     else:
@@ -288,10 +322,40 @@ cdef inline int swap_metropolised_gibbs_unified(float p, data_type_t x) nogil:
         return x
     
             
-cdef inline float sigmoid(float x) nogil:
+cpdef inline float sigmoid(float x) nogil:
     cdef float p
     p = 1/(1+exp(-x))
     return p
+
+
+cpdef inline void compute_pred_accuracy(data_type_t[:,:] x,
+                                        data_type_t[:,:] u,
+                                        data_type_t[:,:] z,
+                                        long[:] rates) nogil:
+    """ Compute false/true positive/negative rates. """
+    cdef int TP=0, FP=0, TN=0, FN=0
+    cdef int d, n, g_temp
+
+    for n in prange(x.shape[0], schedule=dynamic, nogil=True):
+        for d in range(x.shape[1]):
+            g_temp = compute_g_alt_tilde_unified(u[d,:], z[n,:])
+            if g_temp == -1:
+                if x[n,d] == -1:
+                    TN += 1
+                else:
+                    FN += 1
+            else:
+                if x[n,d] == 1:
+                    TP += 1
+                else:
+                    FP += 1
+
+    rates[0] = TP
+    rates[1] = FP
+    rates[2] = TN
+    rates[3] = FN
+    
+    return
 
 
 cpdef inline long compute_P_parallel(data_type_t[:,:] x,
@@ -397,3 +461,23 @@ cpdef bint density_magic(data_type_t[:,:] x,
     
     return False
     # if at least one constrained returns True (do NOT update), return True
+
+
+
+cpdef void probabilistc_output(double[:,:] x,
+                               double[:,:] u,
+                               double[:,:] z,
+                               double lbda,
+                               int D, int N, int L):
+    cdef float p_dn, sgmd_lbda
+    """
+    p_dn is the probability that every input is zero
+    """
+
+    sgmd_lbda = sigmoid(lbda)
+    for d in range(D):
+        for n in range(N):
+            p_dn = 1
+            for l in range(L):
+                p_dn = p_dn * ( 1 - u[d,l]*z[n,l] )
+            x[n, d] = (sgmd_lbda * (1-p_dn) + (p_dn*(1-sgmd_lbda) ) )

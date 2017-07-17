@@ -30,5 +30,14 @@ independent of whether we use OpenMP or not. More about this error on [stackover
 
 Seems to be solved [here](https://stackoverflow.com/questions/40234807/python-c-extension-with-openmp-for-os-x). Not sure how to apply this.
 
+**This is the most promising avenue. E.g. rebuild python should do the job.**
+
+## Should always work: clang without OpenMC
+Clang without openMP should always work
+
+	export CC=/usr/local/myclang/build/bin/clang-5.0
+	python setup_cythonize_singlecore.py build_ext --inplace
+	pip install .
+
 ## Misc
 * Do we cast types when reading out array shape (64 to 32 bit or sth?)

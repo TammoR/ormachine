@@ -45,7 +45,11 @@ class trace():
         self.trace_index += 1
         
     def mean(self):
-        return np.mean(self.trace, axis=0)
+        if 'trace' in dir(self):
+            return np.mean(self.trace, axis=0)
+        # if no trace is defined, return current state
+        else:
+            return self()
     
     def check_convergence(self, eps):
         """
@@ -76,13 +80,35 @@ class trace():
         # otherwise infer it
         else:
             self.infer_sampling_fct()
+           
 
+# class parameter_container():
+#     """
+#     With introduction of the independent noise or maxmachine models,
+#     each layer can have more than one noise parameter.
+#     This class is a container for instances of machine_parameter that
+#     belong to one layer.
+#     methods like update_trace or set_sampling_fct need and in particular
+#     the sampling function need to do the right thing efficiently.
+#     E.g. in the independent OrM, mu and lbda should be updated together
+#     to avoid redundant computation.
+#     For compatibility, also parameters of the classical OrMachine are packaged
+#     in parameter cotainers.
+#     """
+
+#     def __init__(self):
+#         self.parms = []
+
+#     def append(self, machine_parameter):
+#         self.parms += 
+
+            
 class machine_parameter(trace):
     """
     Parameters are attached to corresponding matrices
     """
     
-    def __init__(self, val, attached_matrices=None, sampling_indicator=True):
+    def __init__(self, val, attached_matrices=None, sampling_indicator=True, noise_model='coupled'):
         self.trace_index = 0
         self.sampling_fct = None
         self.val = val
@@ -94,7 +120,11 @@ class machine_parameter(trace):
         
         # assign matrices the parameter
         for mat in attached_matrices:
-            mat.lbda = self
+            if not hasattr(mat, 'lbdas'):
+                mat.lbdas = [self]
+            else:
+                mat.lbdas.append(self)
+
             
     def correct_role_order(self):
         """
@@ -116,7 +146,14 @@ class machine_parameter(trace):
         """
         Can interface other functions here easily.
         """
-        self.sampling_fct = draw_lbda_wrapper
+        
+        if 'coupled' in self.layer.noise_model:
+            self.sampling_fct = draw_lbda_wrapper    
+        elif 'independent' in self.layer.noise_model:
+            self.sampling_fct = draw_lbda_indpndt_wrapper
+        else:
+            raise StandardError('Can not infer appropriate samping function for lbda/mu')
+            
 
     def update(self):
         """
@@ -324,7 +361,18 @@ class machine_matrix(trace):
         Functions take mat object as only argument.
         """
         # first do some sanity checks, no of children etc. Todo
-
+        if 'independent' in self.layer.noise_model:
+            if not np.any(self.density_conditions) and not self.parents:
+                if self.role == 'observations':
+                    self.sampling_fct = draw_z_noparents_onechild_indpn_wrapper
+                elif self.role == 'features':
+                    self.sampling_fct = draw_u_noparents_onechild_indpn_wrapper
+            else:
+                raise StandardError('Appropriate sampling function for independent '+
+                                    'noise model is not defined')
+            return
+            
+        # elif self.layer.noise_model == 'coupled':
         # assign different sampling fcts if matrix row/col density is constrained
         if np.any(self.density_conditions):
             # matrix without child...
@@ -363,7 +411,7 @@ class machine_matrix(trace):
                     elif self.role == 'features':
                         self.sampling_fct = draw_u_twoparents_onechild_maxdens_wrapper
             else:
-                raise Warning('Sth is wrong with allocting sampling functions')
+                raise Warning('Sth is wrong with allocating sampling functions')
 
         else:
             # matrix without child...
@@ -411,31 +459,109 @@ class machine_layer():
     and the user.
     """
     
-    def __init__(self, z, u, lbda, size, child):
+    def __init__(self, z, u, lbdas, size, child, noise_model):
         self.z = z
         self.u = u
-        self.lbda = lbda
+        self.lbdas = lbdas
+        for lbda in lbdas:
+            lbda.layer = self
         self.size = size
         # register as layer of members
         self.z.layer = self
         self.u.layer = self
-        self.lbda.layer = self
+        # self.lbdas.layer = self # not working in independent noise implementation
         self.child = child
         self.child.add_parent_layer(self)
+        self.noise_model = noise_model
+        # Keep track of whehter P (OrM) or TP, FN, etc need updating
+        if 'independent' in noise_model:
+            self.predictive_accuracy_updated = False # switch to update only if needed
+            self.pred_rates = np.array([0,0,0,0], dtype=np.int) # TP, FP, TN, FN
+            # fraction of ones in the data for unbiased inference of 0/1
+            # as implement in draw_lbda_indpndt_wrapper()
+            if 'unbias' in noise_model:
+                self.child.log_bias = np.log(float(np.sum(self.child()==-1))/np.sum(self.child()==1))
+            else:
+                self.child.log_bias = 0
         
     def __call__(self):
         return(self.z(), self.u(), self.lbda())
         
     def members(self):
         return [self.z, self.u]
-    
+
+    @property
     def lbda(self):
-        return self.lbda
-    
+        if 'coupled' in self.noise_model:
+            return self.lbdas[0]
+        elif 'independent' in self.noise_model:
+            assert len(self.lbdas) == 2
+            return self.lbdas[1]
+        elif 'maxmachine' in self.noise_model:
+            return [x() for x in self.lbdas]
+
+    @property
+    def mu(self):
+        assert 'independent' in self.noise_model
+        return self.lbdas[0]
+
     def child(self):
         assert self.z.child is self.u.child
         return self.z.child
 
+    def output(self, u=None, z=None):
+        """
+        propagate probabilities to child layer
+        u and z are optional and intended for use
+        when propagating through mutliple layers.
+        outputs a probability of x being 1.
+        """
+        if u is None:
+            u = self.u.mean()
+        if z is None:
+            z = self.z.mean()
+
+        L = z.shape[1]
+        N = z.shape[0]
+        D = u.shape[0]
+    
+        x = np.empty((N, D))
+
+        if self.noise_model == 'coupled':
+            cf.probabilistc_output(
+                x, .5*(u+1), .5*(z+1), self.lbda.mean(), D, N, L)
+        else:
+            raise StandardError('Output function not defined for given noise model.')
+    
+        return x
+
+    def log_likelihood(self):
+        """
+        Return log likelihood of the assoicated child, given the layer.
+        """
+        
+        N = self.z().shape[0]
+        D = self.u().shape[0]
+
+        if 'coupled' in self.noise_model:
+
+            P = cf.compute_P_parallel(self.lbda.attached_matrices[0].child(),
+                                      self.lbda.attached_matrices[1](),
+                                      self.lbda.attached_matrices[0]())
+
+            return (-P*logsumexp([0,-self.lbda.mean()]) -
+                    (N*D-P)*logsumexp([0,self.lbda.mean()]) )
+
+        elif 'independent' in self.noise_model:
+            update_predictive_accuracy(self)
+            TP, FP, TN, FN = self.pred_rates
+
+            return (-TP*logsumexp([0,-self.lbda()])
+                    -FP*logsumexp([0,self.lbda()])
+                    -TN*logsumexp([0,-self.mu()])
+                    -FN*logsumexp([0,self.lbda()]))                   
+            
+    
 class machine():
     """
     main class
@@ -465,22 +591,22 @@ class machine():
         return mat
         
         
-    def add_parameter(self, val=2, attached_matrices=None):
-        
-        lbda = machine_parameter(val=val, attached_matrices=attached_matrices)
+    def add_parameter(self, val=2, attached_matrices=None, noise_model='coupled'):
+        lbda = machine_parameter(val=val, attached_matrices=attached_matrices, noise_model=noise_model)
         self.lbdas.append(lbda)
-        
         return lbda
     
         
     def add_layer(self, size=None, child=None, 
-                  lbda_init=1.5, z_init=.5, u_init=.5, 
+                  lbda_init=1.5, z_init=.5, u_init=0.0, 
                   z_prior=None, u_prior=None,
-                  z_density_conditions=None, u_density_conditions=None):
+                  z_density_conditions=None, u_density_conditions=None,
+                  noise_model='coupled'):
         """
         This essentially wraps the necessary calls to
         add_parameter, add_matrix
         z/u_density_conditions: [min_row, min_col, max_row, max_col]
+        noise-mode (str): 'coupled', 'indepdent', 'max-machine' (not implemented)
         """
 
         # infer layer shape
@@ -506,14 +632,28 @@ class machine():
                             child=child, p_init=u_init, bernoulli_prior=u_prior,
                             density_conditions=u_density_conditions,
                             role='features')
-        
-        lbda = self.add_parameter(attached_matrices=(z,u), val=lbda_init)
-        
-        layer = machine_layer(z, u, lbda, size, child)
+
+
+        if 'coupled' in noise_model:
+            lbda = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
+            lbdas = [lbda]
+        elif 'independent' in noise_model:
+            print('All noise parameters are initialised with lbda_init')
+            mu = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
+            lbda = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
+            lbdas = [mu, lbda]
+        elif noise_model == 'maxmachine': # not yet implemented
+            lbdas = [self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
+                         for i in range(size)]
+        else:
+            raise StandardError('No proper generative model specified.')
+            
+        layer = machine_layer(z, u, lbdas, size, child, noise_model)
         
         self.layers.append(layer)
         
         return layer
+    
 
     def burn_in(self,
                 mats,
@@ -593,10 +733,11 @@ class machine():
                 break
             
             # draw sampels
+            shuffle(mats)
             [mat.sampling_fct(mat) for mat in mats]
             [lbda.sampling_fct(lbda) for lbda in lbdas]
             [x.update_trace() for x in lbdas]
-            shuffle(mats)
+
             # 
             # print([x.trace_index for x in lbdas], burn_in_iter)
 
@@ -621,12 +762,15 @@ class machine():
             mats = self.members
         mats = [mat for mat in mats if not np.all(mat.sampling_indicator == 0)]
 
+        # sort from large to small. this is crucial for convergence.
+        # mats = sorted(mats, key=lambda x: x.val.shape[0], reverse=True)
+
         # list of parameters (lbdas) of matrix and parents
         lbdas = []
         for mat in mats:
-            lbdas.append(mat.lbda)
+            lbdas += mat.lbdas
             if len(mat.parents) > 0:
-                lbdas.append(mat.parents[0].lbda)
+                lbdas += mat.parents[0].lbdas
         # remove dubplicates preserving order
         lbdas = [x for x in unique_ordered(lbdas) if x is not None]
 
@@ -662,8 +806,8 @@ class machine():
 
         print('drawing samples...')
         for sampling_iter in range(1, no_samples+1):
-            shuffle(mats)  # TODO
 
+            shuffle(mats)  # TODO
             # sample mats and write to trace
             [mat.sampling_fct(mat) for mat in mats]
             [mat.update_trace() for mat in mats]
@@ -740,7 +884,7 @@ def draw_z_noparents_onechild_maxdens_wrapper(mat):
         mat(),  # NxD
         mat.sibling(),  # sibling u: D x Lc
         mat.child(),  # child observation: N x Lc
-        mat.lbda(),  # own parameter: double
+        mat.lbdas[0](),  # own parameter: double
         mat.logit_bernoulli_prior,
         mat.density_conditions,
         mat.sampling_indicator)
@@ -751,7 +895,7 @@ def draw_u_noparents_onechild_maxdens_wrapper(mat):
         mat(), # NxD
         mat.sibling(), # sibling u: D x Lc
         mat.child().transpose(), # child observation: N x Lc
-        mat.lbda(), # own parameter: double
+        mat.lbdas[0](), # own parameter: double
         mat.logit_bernoulli_prior,
         mat.density_conditions,
         mat.sampling_indicator)
@@ -765,7 +909,7 @@ def draw_z_oneparent_onechild_maxdens_wrapper(mat):
         mat.parents[1].lbda(), # parent lbda
         mat.sibling(), # sibling u: D x Lc
         mat.child(), # child observation: N x Lc
-        mat.lbda(), # own parameter: double
+        mat.lbdas[0](), # own parameter: double
         mat.logit_bernoulli_prior,
         mat.density_conditions,
         mat.sampling_indicator)
@@ -779,11 +923,10 @@ def draw_u_oneparent_onechild_maxdens_wrapper(mat):
         mat.parents[1].lbda(), # parent lbda
         mat.sibling(), # sibling u: D x Lc
         mat.child().transpose(), # child observation: N x Lc
-        mat.lbda(), # own parameter: double
+        mat.lbdas[0](), # own parameter: double
         mat.logit_bernoulli_prior,
         mat.density_conditions,
         mat.sampling_indicator)
-
 
 
 def draw_z_oneparent_nochild_wrapper(mat):
@@ -838,7 +981,7 @@ def draw_z_noparents_onechild_wrapper(mat):
         mat(),  # NxD
         mat.sibling(),  # sibling u: D x Lc
         mat.child(),  # child observation: N x Lc
-        mat.lbda(),  # own parameter: double
+        mat.lbdas[0](),  # own parameter: double
         mat.logit_bernoulli_prior,
         mat.sampling_indicator)
     
@@ -848,7 +991,7 @@ def draw_u_noparents_onechild_wrapper(mat):
         mat(), # NxD
         mat.sibling(), # sibling u: D x Lc
         mat.child().transpose(), # child observation: N x Lc
-        mat.lbda(), # own parameter: double
+        mat.lbdas[0](), # own parameter: double
         mat.logit_bernoulli_prior,
         mat.sampling_indicator)
 
@@ -861,7 +1004,7 @@ def draw_z_oneparent_onechild_wrapper(mat):
         mat.parents[1].lbda(), # parent lbda
         mat.sibling(), # sibling u: D x Lc
         mat.child(), # child observation: N x Lc
-        mat.lbda(), # own parameter: double
+        mat.lbdas[0](), # own parameter: double
         mat.logit_bernoulli_prior,
         mat.sampling_indicator)
 
@@ -874,7 +1017,7 @@ def draw_u_oneparent_onechild_wrapper(mat):
         mat.parents[1].lbda(), # parent lbda
         mat.sibling(), # sibling u: D x Lc
         mat.child().transpose(), # child observation: N x Lc
-        mat.lbda(), # own parameter: double
+        mat.lbdas[0](), # own parameter: double
         mat.logit_bernoulli_prior,
         mat.sampling_indicator)
 
@@ -894,7 +1037,63 @@ def draw_lbda_wrapper(parm):
     if ND==P:
         parm.val = 10e10
     else:
-        parm.val = np.max([0, np.min([1000,-np.log(ND/float(P)-1)])])       
+        parm.val = np.max([0, np.min([1000,-np.log(ND/float(P)-1)])])
+
+
+def update_predictive_accuracy(layer):
+    """
+    update values for TP/FP and TN/FN
+    """
+    cf.compute_pred_accuracy(layer.child(), layer.u(), layer.z(), layer.pred_rates)
+    layer.predictive_accuracy_updated = True
+
+        
+def draw_lbda_indpndt_wrapper(parm):
+    
+    if parm.layer.predictive_accuracy_updated is False:
+        update_predictive_accuracy(parm.layer)
+        
+    if parm is parm.layer.lbda:
+         # TODO can save from overflow? more efficient?
+        TP, FP = parm.layer.pred_rates[:2]
+        if not FP==0:
+            parm.val = np.max([0, np.log(TP) - np.log(FP)]) + parm.layer.child.log_bias
+        else:
+            parm.val = 1e3
+    elif parm is parm.layer.mu:
+        TN, FN = parm.layer.pred_rates[2:4]
+        if not FN==0:
+            parm.val = np.max([0, np.log(TN) - np.log(FN)]) - parm.layer.child.log_bias
+        else:
+            parm.val = 1e3
+        
+    return 0
+
+
+def draw_z_noparents_onechild_indpn_wrapper(mat):
+
+    cf.draw_noparents_onechild_indpn(
+        mat(),  # NxD
+        mat.sibling(),  # sibling u: D x Lc
+        mat.child(),  # child observation: N x Lc
+        mat.lbdas[0](), # mu own parameter: double
+        mat.lbdas[1](), # lbda
+        mat.logit_bernoulli_prior,
+        mat.sampling_indicator)
+    mat.layer.predictive_accuracy_updated = False
+
+    
+def draw_u_noparents_onechild_indpn_wrapper(mat):
+    
+    cf.draw_noparents_onechild_indpn(
+        mat(), # NxD
+        mat.sibling(), # sibling u: D x Lc
+        mat.child().transpose(), # child observation: N x Lc
+        mat.lbdas[0](), # mu own parameter: double
+        mat.lbdas[1](), # lbda
+        mat.logit_bernoulli_prior,
+        mat.sampling_indicator)
+    mat.layer.predictive_accuracy_updated = False
 
     
 # missing: twoparents_onechild, (arbitraryparents_onechild, arbitaryparents_nochild)
@@ -907,7 +1106,7 @@ def draw_unified_wrapper_z(mat):
         np.array([x.lbda() for x in mat.parent_layers],dtype=float), # parent lbdas: K (KxL for MaxM)
         mat.sibling(), # sibling u: D x Lc
         mat.child(), # child observation: N x Lc
-        mat.lbda(), # own parameter: double
+        mat.lbdas[0](), # own parameter: double
         mat.logit_bernoulli_prior,
         mat.sampling_indicator)
     
@@ -919,6 +1118,13 @@ def draw_unified_wrapper_u(mat):
         np.array([x.lbda() for x in mat.parent_layers],dtype=float), # parent lbdas: K (KxL for MaxM)
         mat.sibling(), # sibling u: D x Lc
         mat.child().transpose(), # child observation: N x Lc
-        mat.lbda(), # own parameter: double
+        mat.lbdas[0](), # own parameter: double
         mat.logit_bernoulli_prior,
         mat.sampling_indicator)
+
+
+def logsumexp(a):
+    a_max = np.max(a)
+    out = np.log(np.sum(np.exp(a - a_max)))
+    out += a_max
+    return out
