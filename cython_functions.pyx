@@ -52,7 +52,7 @@ def draw_noparents_onechild(data_type_t[:,:] x,  # N x D
                            data_type_t[:,:] sibling, # D x Lc
                            data_type_t[:,:] child, # N x Lc
                            float lbda,
-                           float priors,
+                           float prior,
                            data_type_t[:,:] sampling_indicator): # N x D
                                
     cdef float p, acc_child

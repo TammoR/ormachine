@@ -21,7 +21,7 @@ setup(
     author='Tammo Rukat',
     author_email='tammorukat@gmail.com',
     url='https://github.com/TammoR/OrMachine',
-    py_modules=['ormachine','cython_functions'],
+    py_modules=['ormachine','cython_functions','wrappers'],
     ext_modules=cythonize(ext_modules),
     setup_requires=["Cython >= 0.20"],
     install_requires=['numpy','scipy','Cython']
