@@ -1866,6 +1866,7 @@ static int __pyx_f_16cython_functions_max_density_checker(__Pyx_memviewslice, in
 static int __pyx_f_16cython_functions_min_density_checker(__Pyx_memviewslice, int, int, int __pyx_skip_dispatch); /*proto*/
 static int __pyx_f_16cython_functions_density_magic(__Pyx_memviewslice, __Pyx_memviewslice, int, int, int __pyx_skip_dispatch); /*proto*/
 static void __pyx_f_16cython_functions_probabilistc_output(__Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, double, int, int, int, int __pyx_skip_dispatch); /*proto*/
+static void __pyx_f_16cython_functions_probabilistc_output_indpndt(__Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, double, double, int, int, int, int __pyx_skip_dispatch); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
 static void *__pyx_align_pointer(void *, size_t); /*proto*/
 static PyObject *__pyx_memoryview_new(PyObject *, int, int, __Pyx_TypeInfo *); /*proto*/
@@ -2179,6 +2180,7 @@ static PyObject *__pyx_pf_16cython_functions_30max_density_checker(CYTHON_UNUSED
 static PyObject *__pyx_pf_16cython_functions_32min_density_checker(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, int __pyx_v_min_density, int __pyx_v_d); /* proto */
 static PyObject *__pyx_pf_16cython_functions_34density_magic(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_density_conditions, int __pyx_v_n, int __pyx_v_d); /* proto */
 static PyObject *__pyx_pf_16cython_functions_36probabilistc_output(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_u, __Pyx_memviewslice __pyx_v_z, double __pyx_v_lbda, int __pyx_v_D, int __pyx_v_N, int __pyx_v_L); /* proto */
+static PyObject *__pyx_pf_16cython_functions_38probabilistc_output_indpndt(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_u, __Pyx_memviewslice __pyx_v_z, double __pyx_v_lbda, double __pyx_v_mu, int __pyx_v_D, int __pyx_v_N, int __pyx_v_L); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -9218,6 +9220,7 @@ static void __pyx_f_16cython_functions_probabilistc_output(__Pyx_memviewslice __
  *             for l in range(L):
  *                 p_dn = p_dn * ( 1 - u[d,l]*z[n,l] )             # <<<<<<<<<<<<<<
  *             x[n, d] = (sgmd_lbda * (1-p_dn) + (p_dn*(1-sgmd_lbda) ) )
+ * 
  */
         __pyx_t_7 = __pyx_v_d;
         __pyx_t_8 = __pyx_v_l;
@@ -9230,6 +9233,8 @@ static void __pyx_f_16cython_functions_probabilistc_output(__Pyx_memviewslice __
  *             for l in range(L):
  *                 p_dn = p_dn * ( 1 - u[d,l]*z[n,l] )
  *             x[n, d] = (sgmd_lbda * (1-p_dn) + (p_dn*(1-sgmd_lbda) ) )             # <<<<<<<<<<<<<<
+ * 
+ * 
  */
       __pyx_t_11 = __pyx_v_n;
       __pyx_t_12 = __pyx_v_d;
@@ -9371,6 +9376,276 @@ static PyObject *__pyx_pf_16cython_functions_36probabilistc_output(CYTHON_UNUSED
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_AddTraceback("cython_functions.probabilistc_output", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __PYX_XDEC_MEMVIEW(&__pyx_v_x, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_u, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_z, 1);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cython_functions.pyx":487
+ * 
+ * 
+ * cpdef void probabilistc_output_indpndt(double[:,:] x,             # <<<<<<<<<<<<<<
+ *                                        double[:,:] u,
+ *                                        double[:,:] z,
+ */
+
+static PyObject *__pyx_pw_16cython_functions_39probabilistc_output_indpndt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static void __pyx_f_16cython_functions_probabilistc_output_indpndt(__Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_u, __Pyx_memviewslice __pyx_v_z, double __pyx_v_lbda, double __pyx_v_mu, int __pyx_v_D, int __pyx_v_N, int __pyx_v_L, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  float __pyx_v_p_dn;
+  float __pyx_v_sgmd_lbda;
+  float __pyx_v_sgmd_mu;
+  int __pyx_v_d;
+  int __pyx_v_n;
+  int __pyx_v_l;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  int __pyx_t_6;
+  Py_ssize_t __pyx_t_7;
+  Py_ssize_t __pyx_t_8;
+  Py_ssize_t __pyx_t_9;
+  Py_ssize_t __pyx_t_10;
+  Py_ssize_t __pyx_t_11;
+  Py_ssize_t __pyx_t_12;
+  __Pyx_RefNannySetupContext("probabilistc_output_indpndt", 0);
+
+  /* "cython_functions.pyx":498
+ *     """
+ * 
+ *     sgmd_lbda = sigmoid(lbda)             # <<<<<<<<<<<<<<
+ *     sgmd_mu = sigmoid(mu)
+ *     for d in range(D):
+ */
+  __pyx_v_sgmd_lbda = __pyx_f_16cython_functions_sigmoid(__pyx_v_lbda, 0);
+
+  /* "cython_functions.pyx":499
+ * 
+ *     sgmd_lbda = sigmoid(lbda)
+ *     sgmd_mu = sigmoid(mu)             # <<<<<<<<<<<<<<
+ *     for d in range(D):
+ *         for n in range(N):
+ */
+  __pyx_v_sgmd_mu = __pyx_f_16cython_functions_sigmoid(__pyx_v_mu, 0);
+
+  /* "cython_functions.pyx":500
+ *     sgmd_lbda = sigmoid(lbda)
+ *     sgmd_mu = sigmoid(mu)
+ *     for d in range(D):             # <<<<<<<<<<<<<<
+ *         for n in range(N):
+ *             p_dn = 1
+ */
+  __pyx_t_1 = __pyx_v_D;
+  for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
+    __pyx_v_d = __pyx_t_2;
+
+    /* "cython_functions.pyx":501
+ *     sgmd_mu = sigmoid(mu)
+ *     for d in range(D):
+ *         for n in range(N):             # <<<<<<<<<<<<<<
+ *             p_dn = 1
+ *             for l in range(L):
+ */
+    __pyx_t_3 = __pyx_v_N;
+    for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
+      __pyx_v_n = __pyx_t_4;
+
+      /* "cython_functions.pyx":502
+ *     for d in range(D):
+ *         for n in range(N):
+ *             p_dn = 1             # <<<<<<<<<<<<<<
+ *             for l in range(L):
+ *                 p_dn = p_dn * ( 1 - u[d,l]*z[n,l] )
+ */
+      __pyx_v_p_dn = 1.0;
+
+      /* "cython_functions.pyx":503
+ *         for n in range(N):
+ *             p_dn = 1
+ *             for l in range(L):             # <<<<<<<<<<<<<<
+ *                 p_dn = p_dn * ( 1 - u[d,l]*z[n,l] )
+ *             x[n, d] = (sgmd_lbda * (1-p_dn) + (p_dn*(1-sgmd_mu) ) )
+ */
+      __pyx_t_5 = __pyx_v_L;
+      for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
+        __pyx_v_l = __pyx_t_6;
+
+        /* "cython_functions.pyx":504
+ *             p_dn = 1
+ *             for l in range(L):
+ *                 p_dn = p_dn * ( 1 - u[d,l]*z[n,l] )             # <<<<<<<<<<<<<<
+ *             x[n, d] = (sgmd_lbda * (1-p_dn) + (p_dn*(1-sgmd_mu) ) )
+ * 
+ */
+        __pyx_t_7 = __pyx_v_d;
+        __pyx_t_8 = __pyx_v_l;
+        __pyx_t_9 = __pyx_v_n;
+        __pyx_t_10 = __pyx_v_l;
+        __pyx_v_p_dn = (__pyx_v_p_dn * (1.0 - ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_u.data + __pyx_t_7 * __pyx_v_u.strides[0]) ) + __pyx_t_8 * __pyx_v_u.strides[1]) ))) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_z.data + __pyx_t_9 * __pyx_v_z.strides[0]) ) + __pyx_t_10 * __pyx_v_z.strides[1]) ))))));
+      }
+
+      /* "cython_functions.pyx":505
+ *             for l in range(L):
+ *                 p_dn = p_dn * ( 1 - u[d,l]*z[n,l] )
+ *             x[n, d] = (sgmd_lbda * (1-p_dn) + (p_dn*(1-sgmd_mu) ) )             # <<<<<<<<<<<<<<
+ * 
+ */
+      __pyx_t_11 = __pyx_v_n;
+      __pyx_t_12 = __pyx_v_d;
+      *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_11 * __pyx_v_x.strides[0]) ) + __pyx_t_12 * __pyx_v_x.strides[1]) )) = ((__pyx_v_sgmd_lbda * (1.0 - __pyx_v_p_dn)) + (__pyx_v_p_dn * (1.0 - __pyx_v_sgmd_mu)));
+    }
+  }
+
+  /* "cython_functions.pyx":487
+ * 
+ * 
+ * cpdef void probabilistc_output_indpndt(double[:,:] x,             # <<<<<<<<<<<<<<
+ *                                        double[:,:] u,
+ *                                        double[:,:] z,
+ */
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_16cython_functions_39probabilistc_output_indpndt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_16cython_functions_39probabilistc_output_indpndt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  __Pyx_memviewslice __pyx_v_x = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_u = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_z = { 0, 0, { 0 }, { 0 }, { 0 } };
+  double __pyx_v_lbda;
+  double __pyx_v_mu;
+  int __pyx_v_D;
+  int __pyx_v_N;
+  int __pyx_v_L;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("probabilistc_output_indpndt (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_x,&__pyx_n_s_u,&__pyx_n_s_z,&__pyx_n_s_lbda,&__pyx_n_s_mu,&__pyx_n_s_D,&__pyx_n_s_N,&__pyx_n_s_L,0};
+    PyObject* values[8] = {0,0,0,0,0,0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
+        case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
+        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        case  1:
+        if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_u)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("probabilistc_output_indpndt", 1, 8, 8, 1); __PYX_ERR(0, 487, __pyx_L3_error)
+        }
+        case  2:
+        if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_z)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("probabilistc_output_indpndt", 1, 8, 8, 2); __PYX_ERR(0, 487, __pyx_L3_error)
+        }
+        case  3:
+        if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_lbda)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("probabilistc_output_indpndt", 1, 8, 8, 3); __PYX_ERR(0, 487, __pyx_L3_error)
+        }
+        case  4:
+        if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_mu)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("probabilistc_output_indpndt", 1, 8, 8, 4); __PYX_ERR(0, 487, __pyx_L3_error)
+        }
+        case  5:
+        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_D)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("probabilistc_output_indpndt", 1, 8, 8, 5); __PYX_ERR(0, 487, __pyx_L3_error)
+        }
+        case  6:
+        if (likely((values[6] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_N)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("probabilistc_output_indpndt", 1, 8, 8, 6); __PYX_ERR(0, 487, __pyx_L3_error)
+        }
+        case  7:
+        if (likely((values[7] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_L)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("probabilistc_output_indpndt", 1, 8, 8, 7); __PYX_ERR(0, 487, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "probabilistc_output_indpndt") < 0)) __PYX_ERR(0, 487, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 8) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+      values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+      values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
+      values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
+    }
+    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[0]); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 487, __pyx_L3_error)
+    __pyx_v_u = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[1]); if (unlikely(!__pyx_v_u.memview)) __PYX_ERR(0, 488, __pyx_L3_error)
+    __pyx_v_z = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[2]); if (unlikely(!__pyx_v_z.memview)) __PYX_ERR(0, 489, __pyx_L3_error)
+    __pyx_v_lbda = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_lbda == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 490, __pyx_L3_error)
+    __pyx_v_mu = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_mu == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 491, __pyx_L3_error)
+    __pyx_v_D = __Pyx_PyInt_As_int(values[5]); if (unlikely((__pyx_v_D == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 492, __pyx_L3_error)
+    __pyx_v_N = __Pyx_PyInt_As_int(values[6]); if (unlikely((__pyx_v_N == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 492, __pyx_L3_error)
+    __pyx_v_L = __Pyx_PyInt_As_int(values[7]); if (unlikely((__pyx_v_L == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 492, __pyx_L3_error)
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("probabilistc_output_indpndt", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 487, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("cython_functions.probabilistc_output_indpndt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_16cython_functions_38probabilistc_output_indpndt(__pyx_self, __pyx_v_x, __pyx_v_u, __pyx_v_z, __pyx_v_lbda, __pyx_v_mu, __pyx_v_D, __pyx_v_N, __pyx_v_L);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_16cython_functions_38probabilistc_output_indpndt(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_u, __Pyx_memviewslice __pyx_v_z, double __pyx_v_lbda, double __pyx_v_mu, int __pyx_v_D, int __pyx_v_N, int __pyx_v_L) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("probabilistc_output_indpndt", 0);
+  __Pyx_XDECREF(__pyx_r);
+  if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundLocalError("x"); __PYX_ERR(0, 487, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_u.memview)) { __Pyx_RaiseUnboundLocalError("u"); __PYX_ERR(0, 487, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_z.memview)) { __Pyx_RaiseUnboundLocalError("z"); __PYX_ERR(0, 487, __pyx_L1_error) }
+  __pyx_t_1 = __Pyx_void_to_None(__pyx_f_16cython_functions_probabilistc_output_indpndt(__pyx_v_x, __pyx_v_u, __pyx_v_z, __pyx_v_lbda, __pyx_v_mu, __pyx_v_D, __pyx_v_N, __pyx_v_L, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 487, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("cython_functions.probabilistc_output_indpndt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x, 1);
@@ -24225,6 +24500,7 @@ static PyMethodDef __pyx_methods[] = {
   {"min_density_checker", (PyCFunction)__pyx_pw_16cython_functions_33min_density_checker, METH_VARARGS|METH_KEYWORDS, 0},
   {"density_magic", (PyCFunction)__pyx_pw_16cython_functions_35density_magic, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16cython_functions_34density_magic},
   {"probabilistc_output", (PyCFunction)__pyx_pw_16cython_functions_37probabilistc_output, METH_VARARGS|METH_KEYWORDS, 0},
+  {"probabilistc_output_indpndt", (PyCFunction)__pyx_pw_16cython_functions_39probabilistc_output_indpndt, METH_VARARGS|METH_KEYWORDS, 0},
   {0, 0, 0, 0}
 };
 

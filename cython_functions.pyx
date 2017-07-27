@@ -52,7 +52,7 @@ def draw_noparents_onechild(data_type_t[:,:] x,  # N x D
                            data_type_t[:,:] sibling, # D x Lc
                            data_type_t[:,:] child, # N x Lc
                            float lbda,
-                           float prior,
+                           float priors,
                            data_type_t[:,:] sampling_indicator): # N x D
                                
     cdef float p, acc_child
@@ -481,3 +481,26 @@ cpdef void probabilistc_output(double[:,:] x,
             for l in range(L):
                 p_dn = p_dn * ( 1 - u[d,l]*z[n,l] )
             x[n, d] = (sgmd_lbda * (1-p_dn) + (p_dn*(1-sgmd_lbda) ) )
+
+
+
+cpdef void probabilistc_output_indpndt(double[:,:] x,
+                                       double[:,:] u,
+                                       double[:,:] z,
+                                       double lbda,
+                                       double mu,
+                                       int D, int N, int L):
+    cdef float p_dn, sgmd_lbda, sgmd_mu
+    """
+    p_dn is the probability that every input is zero
+    """
+
+    sgmd_lbda = sigmoid(lbda)
+    sgmd_mu = sigmoid(mu)
+    for d in range(D):
+        for n in range(N):
+            p_dn = 1
+            for l in range(L):
+                p_dn = p_dn * ( 1 - u[d,l]*z[n,l] )
+            x[n, d] = (sgmd_lbda * (1-p_dn) + (p_dn*(1-sgmd_mu) ) )
+            

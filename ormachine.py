@@ -474,13 +474,13 @@ class machine_layer():
         self.child.add_parent_layer(self)
         self.noise_model = noise_model
         # Keep track of whehter P (OrM) or TP, FN, etc need updating
-        if 'independent' in noise_model:
+        if 'independent' in noise_model or True: # we can compute predict accuracies for the original model, too.
             self.predictive_accuracy_updated = False # switch to update only if needed
             self.pred_rates = np.array([0,0,0,0], dtype=np.int) # TP, FP, TN, FN
             # fraction of ones in the data for unbiased inference of 0/1
             # as implement in draw_lbda_indpndt_wrapper()
             if 'unbias' in noise_model:
-                self.child.log_bias = np.log(float(np.sum(self.child()==-1))/np.sum(self.child()==1))
+                self.child.log_bias = np.log(float(np.sum(self.child()==1))/np.sum(self.child()==-1))
             else:
                 self.child.log_bias = 0
         
@@ -530,6 +530,9 @@ class machine_layer():
         if self.noise_model == 'coupled':
             cf.probabilistc_output(
                 x, .5*(u+1), .5*(z+1), self.lbda.mean(), D, N, L)
+        elif 'independent' in self.noise_model:
+            cf.probabilistc_output_indpndt(
+                x, .5*(u+1), .5*(z+1), self.lbda.mean(), self.mu.mean(), D, N, L)
         else:
             raise StandardError('Output function not defined for given noise model.')
     
@@ -553,13 +556,22 @@ class machine_layer():
                     (N*D-P)*logsumexp([0,self.lbda.mean()]) )
 
         elif 'independent' in self.noise_model:
-            update_predictive_accuracy(self)
+            self.update_predictive_accuracy()
             TP, FP, TN, FN = self.pred_rates
 
             return (-TP*logsumexp([0,-self.lbda()])
                     -FP*logsumexp([0,self.lbda()])
                     -TN*logsumexp([0,-self.mu()])
-                    -FN*logsumexp([0,self.lbda()]))                   
+                    -FN*logsumexp([0,self.lbda()]))
+
+
+    def update_predictive_accuracy(self):
+        """
+        update values for TP/FP and TN/FN
+        """
+        cf.compute_pred_accuracy(self.child(), self.u(), self.z(), self.pred_rates)
+        self.predictive_accuracy_updated = True
+            
             
     
 class machine():
@@ -684,7 +696,7 @@ class machine():
             if pre_burn_in_iter % print_step == 0:
                 print('\r\titeration: ' +
                       str(pre_burn_in_iter) +
-                      ' recon acc.: ' +
+                      ' disperion.: ' +
                       ', '.join([str(round(expit(np.mean(x())),3)) for x in lbdas]),
                       end='')
 
@@ -815,7 +827,7 @@ class machine():
             # sample lbdas and write to trace
             [lbda.sampling_fct(lbda) for lbda in lbdas]
             [lbda.update_trace() for lbda in lbdas]
-
+            
             if sampling_iter % print_step == 0:
                 print('\r\t' + 'iteration ' +
                       str(sampling_iter) +
@@ -955,10 +967,10 @@ def draw_z_twoparents_nochild_wrapper(mat):
         mat(), # NxD
         mat.parent_layers[0].z(), # parents obs: N x Lp
         mat.parent_layers[0].u(), # parents feat: D x Lp
-        mat.parent_layers[0].u.lbda(), # parent lbda
+        mat.parent_layers[0].u.lbdas[0](), # parent lbda
         mat.parent_layers[1].z(), # parents obs: N x Lp
         mat.parent_layers[1].u(), # parents feat: D x Lp
-        mat.parent_layers[1].u.lbda(), # parent lbda
+        mat.parent_layers[1].u.lbdas[0](), # parent lbda
         mat.logit_bernoulli_prior,
         mat.sampling_indicator)
     
@@ -986,6 +998,19 @@ def draw_z_noparents_onechild_wrapper(mat):
         mat.sampling_indicator)
     
 def draw_u_noparents_onechild_wrapper(mat):
+    from scipy.special import logit
+
+    if False:
+        # standard prior
+        logit_bernoulli_prior = mat.logit_bernoulli_prior
+
+        #binomial prior in EM fashion
+        logitq = logit(1./3) # expected code fractional length
+        D, L = mat().shape # naming of varibles different than in cython fcts.
+        logit_bernoulli_priors = np.zeros(L) # initialise
+        k = np.sum(mat()==1,0) # this also takes the current valu z_nl into account.
+        for l in range(L):
+            logit_bernoulli_priors[l]
     
     cf.draw_noparents_onechild(
         mat(), # NxD
@@ -996,12 +1021,11 @@ def draw_u_noparents_onechild_wrapper(mat):
         mat.sampling_indicator)
 
 def draw_z_oneparent_onechild_wrapper(mat):
-
     cf.draw_oneparent_onechild(
         mat(), # N x D
         mat.parents[0](), # parent obs: N x Lp
         mat.parents[1](), # parent features, D x Lp
-        mat.parents[1].lbda(), # parent lbda
+        mat.parents[1].lbdas[0](), # parent lbda
         mat.sibling(), # sibling u: D x Lc
         mat.child(), # child observation: N x Lc
         mat.lbdas[0](), # own parameter: double
@@ -1014,7 +1038,7 @@ def draw_u_oneparent_onechild_wrapper(mat):
         mat(), # NxD
         mat.parents[1](), # parent obs: N x Lp
         mat.parents[0](), # parent features, D x Lp
-        mat.parents[1].lbda(), # parent lbda
+        mat.parents[1].lbdas[0](), # parent lbda
         mat.sibling(), # sibling u: D x Lc
         mat.child().transpose(), # child observation: N x Lc
         mat.lbdas[0](), # own parameter: double
@@ -1039,31 +1063,23 @@ def draw_lbda_wrapper(parm):
     else:
         parm.val = np.max([0, np.min([1000,-np.log(ND/float(P)-1)])])
 
-
-def update_predictive_accuracy(layer):
-    """
-    update values for TP/FP and TN/FN
-    """
-    cf.compute_pred_accuracy(layer.child(), layer.u(), layer.z(), layer.pred_rates)
-    layer.predictive_accuracy_updated = True
-
         
 def draw_lbda_indpndt_wrapper(parm):
     
     if parm.layer.predictive_accuracy_updated is False:
-        update_predictive_accuracy(parm.layer)
+        parm.layer.update_predictive_accuracy()
         
     if parm is parm.layer.lbda:
          # TODO can save from overflow? more efficient?
         TP, FP = parm.layer.pred_rates[:2]
         if not FP==0:
-            parm.val = np.max([0, np.log(TP) - np.log(FP)]) + parm.layer.child.log_bias
+            parm.val = np.max([0, np.log(TP) - np.log(FP)]) - parm.layer.child.log_bias
         else:
             parm.val = 1e3
     elif parm is parm.layer.mu:
         TN, FN = parm.layer.pred_rates[2:4]
         if not FN==0:
-            parm.val = np.max([0, np.log(TN) - np.log(FN)]) - parm.layer.child.log_bias
+            parm.val = np.max([0, np.log(TN) - np.log(FN)]) + parm.layer.child.log_bias
         else:
             parm.val = 1e3
         
