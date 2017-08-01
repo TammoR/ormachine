@@ -152,9 +152,10 @@ class machine_parameter(trace):
             self.sampling_fct = wrappers.draw_lbda_wrapper    
         elif 'independent' in self.layer.noise_model:
             self.sampling_fct = wrappers.draw_lbda_indpndt_wrapper
-        else:
-            raise StandardError('Can not infer appropriate samping function for lbda/mu')
-            
+        elif 'maxmachine' in self.noise_model:
+            self.sampling_fct = wrappers.draw_lbda_maxmachine_wrapper
+            # print('Can not infer appropriate samping function for lbda/mu')
+            # raise StandardError('Can not infer appropriate samping function for lbda/mu') 
 
     def update(self):
         """
@@ -654,12 +655,18 @@ class machine():
             mu = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
             lbda = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
             lbdas = [mu, lbda]
-        elif noise_model == 'maxmachine': # not yet implemented
-            lbdas = [self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
+        elif noise_model == 'maxmachine': # experimental
+            if type(lbda_init) is not list:
+                lbdas = [self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
                          for i in range(size)]
+            elif len(lbda_init) == size:
+                lbdas = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
+            else:
+                raise StandardError('lambda not properly initiliased for maxmachine')
         else:
             raise StandardError('No proper generative model specified.')
-            
+
+        Tracer()()
         layer = machine_layer(z, u, lbdas, size, child, noise_model)
         
         self.layers.append(layer)
@@ -785,6 +792,14 @@ class machine():
                 lbdas += mat.parents[0].lbdas
         # remove dubplicates preserving order
         lbdas = [x for x in unique_ordered(lbdas) if x is not None]
+
+        # for maxmachine, all lambdas of one layer have to be processed jointly
+        # remove maxmachine lambdas from list
+        lbdas = [x for x in lbdas if not x.layer.noise_model == 'maxmachine']
+        # add lists of maxmachine lambdas to list
+        for layer in self.layers:
+            if layer.noise_model == 'maxmachine':
+                lbdas.append(layer.lbdas)
 
         # assign sampling function to each mat
         for thing_to_update in mats+lbdas:

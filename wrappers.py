@@ -208,6 +208,12 @@ def draw_u_oneparent_onechild_wrapper(mat):
         mat.sampling_indicator)
 
 
+def draw_lbda_maxmachine_wrapper(parm):
+    """
+    this is only a dummy
+    """
+    parm.val = 0.9
+    
 
 def draw_lbda_wrapper(parm):
 

@@ -1,5 +1,5 @@
 #!python
-#cython: profile=False, language_level=3, boundscheck=False, wraparound=False, cdivision=True
+#cython: profile=False, language_level=3, boundscheck=True, wraparound=True, cdivision=True
 #cython --compile-args=-fopenmp --link-args=-fopenmp --force -a
 ## for compilation run: python setup.py build_ext --inplace
 
@@ -8,6 +8,7 @@ from cython.parallel import prange, parallel
 from libc.math cimport exp
 from libc.math cimport log
 from libc.stdlib cimport rand, RAND_MAX
+from libc.stdlib cimport malloc
 cimport numpy as np
 import numpy as np
 
@@ -16,6 +17,95 @@ ctypedef np.int8_t data_type_t
 
 data_type2 = np.int16
 ctypedef np.int16_t data_type_t2
+
+def draw_noparents_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
+                                       data_type_t[:,:] sibling, # D x Lc; u_dl
+                                       data_type_t[:,:] child, # N x Lc; x_nd
+                                       double[:] lbda,
+                                       int[:] idx_sorted):
+    """
+    TODO: 
+    implement prior (simple and binomial), 
+    sampling indicator, 
+    versions with parents
+    """
+                               
+    cdef float p, acc_child
+    cdef int n, l, d, N = x.shape[0], L = x.shape[1], D = sibling.shape[0]
+    cdef bint break_accumulator
+
+    # iterate over codes in order of decreasing lbda
+    for n in range(N): #, schedule=dynamic, nogil=True):
+        for l in range(L):
+            # iterate over children
+            accumulator = 0
+            for d in range(D):
+                
+                # connection to child is cut
+                if sibling[d,l] == -1:
+                    continue
+                
+                # connection to child is intact
+                else:
+                    break_accumulator = False # continue with next iteration over d, once acc is updated
+
+                    # is any older sibling explaining away the child?
+                    for l_prime in range(l):
+                        if (x[n,idx_sorted[l_prime]] == 1) and (sibling[d,idx_sorted[l_prime]] == 1):
+                            # break -> continue with next child
+                            break_accumulator = True
+                            break
+                    if break_accumulator == True:
+                        continue
+                    
+                    # is any younger sibling trying to explain away the child?
+                    for l_prime in range(l+1,L):
+                        if (x[n,idx_sorted[l_prime]] == 1) and (sibling[d,idx_sorted[l_prime]] == 1):
+                            accumulator += child[n,d] * log(lbda[idx_sorted[l]]/.9*lbda[idx_sorted[l_prime]])
+                            break_accumulator = True
+                            break
+                    if break_accumulator == True:
+                        continue
+                    
+                    # no one is explaining away (compared to clamped alpha=0)
+                    accumulator += child[n,d] * log(2*lbda[idx_sorted[l]])
+                    
+            # swap
+            # print(sigmoid(accumulator))
+            x[n,l] = swap_metropolised_gibbs_unified(sigmoid(accumulator), x[n,l])
+
+
+def draw_noparents_onechild_bbprior(data_type_t[:,:] x,  # N x D
+                                    data_type_t[:,:] sibling, # D x Lc
+                                    data_type_t[:,:] child, # N x Lc
+                                    float lbda,
+                                    double[:] bbp_k,
+                                    double[:] bbp_j,
+                                    int[:] k, # vector of counts of length D
+                                    int[:] j, # vector of counts of length N
+                                    data_type_t[:,:] sampling_indicator): # N x D
+    """
+    bbp_k is the binomial prior for across D (L) and bbp_j the binom. prior across N (D).
+    """
+
+    cdef float p, acc_child
+    cdef int n, d, N = x.shape[0], D = x.shape[1]
+    
+    for n in range(N): # no parallel updates for bbp sampler :( u: N->D, D->L
+        for d in range(D):
+            if sampling_indicator[n,d] is True:
+
+                # compute the posterior
+                acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)
+                p = sigmoid(acc_child + bbp_k[k[d]] + bbp_j[j[n]])
+                
+                x_old = x[n, d]
+                
+                x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
+                
+                k[d] += x[n,d] * (x[n,d] != x_old)
+                j[n] += x[n,d] * (x[n,d] != x_old)
+    
 
 
 def draw_noparents_onechild_indpn(data_type_t[:,:] x,  # N x D
@@ -37,12 +127,9 @@ def draw_noparents_onechild_indpn(data_type_t[:,:] x,  # N x D
             if sampling_indicator[n,d] is True:
 
                 # compute the posterior
-
-
                 #acc_child = lbda*score_no_parents_unified(child[n,:], x[n,:], sibling, d)
                 M = score_no_parents_unified(child[n,:], x[n,:], sibling, d)
                 p = 1 / ( 1 + ( ( 1 + exp( - M * lbda ) )/ ( 1 + exp( M * mu ) ) ) )
-
                 #p = sigmoid(acc_child + prior)
 
                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])
@@ -305,6 +392,10 @@ cpdef inline int score_no_parents_unified(
 # @cython.wraparound(False)
 @cython.cdivision(True)
 cdef inline int swap_metropolised_gibbs_unified(float p, data_type_t x) nogil:
+    """
+    Given the p(x=1) and the current state of x \in {-1,1}.
+    Draw new x according to metropolised Gibbs sampler
+    """
     cdef float alpha
     if x == 1:
         if p <= .5:
