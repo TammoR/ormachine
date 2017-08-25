@@ -37,8 +37,8 @@ class trace():
         if type(self.val) == np.ndarray:
             # nicer but no python2 compatible
             # self.trace = np.empty([no_of_samples, *self.val.shape], dtype=np.int8)        
-            self.trace = np.empty([no_of_samples]+[x for x in self.val.shape], dtype=np.int8)
-        else:
+            self.trace = np.empty([no_of_samples]+[x for x in self.val.shape], dtype=self().dtype)
+        else: # not needed (?)
             self.trace = np.empty([no_of_samples], dtype=np.float32)
         
     def update_trace(self):
@@ -56,18 +56,25 @@ class trace():
         """
         split trace in half and check difference between means < eps
         """
-        l = int(len(self.trace)/2)
-        r1 = expit(np.mean(self.trace[:l]))
-        r2 = expit(np.mean(self.trace[l:]))
-        r = expit(np.mean(self.trace))
 
-        # print('\n\n',r1\,'\n',r2,'\n',np.abs(r1-r2))
+        def check_convergence_single_trace(trace, eps):
+            l = int(len(trace)/2)
+            r1 = expit(np.mean(trace[:l]))
+            r2 = expit(np.mean(trace[l:]))
+            r = expit(np.mean(trace))
+            
+            if np.abs(r1-r2) < eps:
+                return True
+            else:
+                return False            
         
-        if np.abs(r1-r2) < eps:
-            return True
-        else:
-            # print('reconstr. accuracy: '+str(r))
-            return False
+        if self.trace.ndim == 1:
+            return check_convergence_single_trace(self.trace, eps)
+
+        # if we have multiple dispersion parameter every one of them needs to have converged
+        elif self.trace.ndim == 2:
+            return np.all([check_convergence_single_trace(self.trace[:,l], eps)
+                           for l in range(self.trace.shape[1])])
 
     def set_sampling_fct(self, sampling_fct=None):
 
@@ -118,13 +125,23 @@ class machine_parameter(trace):
         # make sure they are a tuple in order (observations/features)
         self.sampling_indicator = sampling_indicator
         self.trace_index = 0
+        self.noise_model = noise_model
         
         # assign matrices the parameter
         for mat in attached_matrices:
-            if not hasattr(mat, 'lbdas'):
-                mat.lbdas = [self]
-            else:
-                mat.lbdas.append(self)
+            mat.lbda = self
+            # if not hasattr(mat, 'lbdas'):
+            #     mat.lbdas = [self]
+            # else:
+            #     mat.lbdas.append(self)
+
+    def print_value(self):
+        if self.noise_model == 'coupled':
+            return ', '.join([str(round(expit(np.mean(x)),3)) for x in [self.val]])
+        elif self.noise_model == 'independent':
+            return ', '.join([str(round(expit(x),3)) for x in self.val])
+        elif self.noise_model == 'maxmachine':
+            return ', '.join([str(str.format('{0:3f}',x)) for x in self.val])
 
             
     def correct_role_order(self):
@@ -176,8 +193,6 @@ class machine_parameter(trace):
             print('\n\n', np.mean(prod == x))
             print(x[x!=prod])
 
-            Tracer()()
-              
         P = cf.compute_P_parallel(self.attached_matrices[0].child(),
                                 self.attached_matrices[1](),
                                 self.attached_matrices[0]())
@@ -187,7 +202,7 @@ class machine_parameter(trace):
                     np.sum(self.attached_matrices[0].child() == 0))
 
         # set to MLE ( exp(-lbda_mle) = ND/P - 1 )
-#         print('\n'+str(arg)+'\n')
+        #         print('\n'+str(arg)+'\n')
         if ND==P:
             self.val = 10e10
         else:
@@ -461,12 +476,15 @@ class machine_layer():
     and the user.
     """
     
-    def __init__(self, z, u, lbdas, size, child, noise_model):
+    def __init__(self, z, u, lbda, size, child, noise_model):
         self.z = z
         self.u = u
-        self.lbdas = lbdas
-        for lbda in lbdas:
-            lbda.layer = self
+        lbda.layer = self
+        #self.lbdas = lbdas
+        #for lbda in lbdas:
+        #    lbda.layer = self
+
+        self.lbda = lbda
         self.size = size
         # register as layer of members
         self.z.layer = self
@@ -476,6 +494,7 @@ class machine_layer():
         self.child.add_parent_layer(self)
         self.noise_model = noise_model
         # Keep track of whehter P (OrM) or TP, FN, etc need updating
+        
         if 'independent' in noise_model or True: # we can compute predict accuracies for the original model, too.
             self.predictive_accuracy_updated = False # switch to update only if needed
             self.pred_rates = np.array([0,0,0,0], dtype=np.int) # TP, FP, TN, FN
@@ -493,7 +512,10 @@ class machine_layer():
         return [self.z, self.u]
 
     @property
-    def lbda(self):
+    def lbda_property(self):
+        """
+        deprecated
+        """
         if 'coupled' in self.noise_model:
             return self.lbdas[0]
         elif 'independent' in self.noise_model:
@@ -505,7 +527,12 @@ class machine_layer():
     @property
     def mu(self):
         assert 'independent' in self.noise_model
-        return self.lbdas[0]
+        return self.lbda()[0]
+
+    @property
+    def nu(self):
+        assert 'independent' in self.noise_model
+        return self.lbda()[1]
 
     def child(self):
         assert self.z.child is self.u.child
@@ -518,6 +545,7 @@ class machine_layer():
         when propagating through mutliple layers.
         outputs a probability of x being 1.
         """
+
         if u is None:
             u = self.u.mean()
         if z is None:
@@ -534,7 +562,13 @@ class machine_layer():
                 x, .5*(u+1), .5*(z+1), self.lbda.mean(), D, N, L)
         elif 'independent' in self.noise_model:
             cf.probabilistc_output_indpndt(
-                x, .5*(u+1), .5*(z+1), self.lbda.mean(), self.mu.mean(), D, N, L)
+                x, .5*(u+1), .5*(z+1), self.lbda.mean()[1], self.lbda.mean()[0], D, N, L)
+        elif self.noise_model is 'maxmachine':
+            # check that the background noise is smaller than any latent dimension's noise
+            assert self.lbda.mean()[-1] == np.min(self.lbda.mean())
+            cf.probabilistic_output_maxmachine(
+                x, .5*(u+1), .5*(z+1), self.lbda.mean(),
+                np.array(np.argsort(-self.lbda.mean()), dtype=np.int32))
         else:
             raise StandardError('Output function not defined for given noise model.')
     
@@ -636,7 +670,7 @@ class machine():
             shape_u = (child().shape[1], size)    
         else:
             raise Warning('Can not infer layer size')
-            
+
         z = self.add_matrix(shape=shape_z, 
                             child=child, p_init=z_init, bernoulli_prior=z_prior,
                             density_conditions=z_density_conditions,
@@ -649,26 +683,28 @@ class machine():
 
         if 'coupled' in noise_model:
             lbda = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
-            lbdas = [lbda]
+            # lbdas = [lbda]
         elif 'independent' in noise_model:
             print('All noise parameters are initialised with lbda_init')
-            mu = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
-            lbda = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
-            lbdas = [mu, lbda]
+            lbda = self.add_parameter(attached_matrices=(z,u), val=np.array(2*[lbda_init]), noise_model=noise_model)
+            #mu = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
+            #lbda = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
+            # lbdas = [mu, lbda]
         elif noise_model == 'maxmachine': # experimental
             if type(lbda_init) is not list:
-                lbdas = [self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
-                         for i in range(size)]
-            elif len(lbda_init) == size:
-                lbdas = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
+                lbda = self.add_parameter(attached_matrices=(z,u),
+                                          val=np.array([lbda_init for i in range(size+1)]),
+                                          noise_model=noise_model)
+                lbda()[-1] = .01
+            elif len(lbda_init) == size + 1:
+                lbda = self.add_parameter(attached_matrices=(z,u), val=np.array(lbda_init), noise_model=noise_model)
             else:
                 raise StandardError('lambda not properly initiliased for maxmachine')
         else:
             raise StandardError('No proper generative model specified.')
 
-        Tracer()()
-        layer = machine_layer(z, u, lbdas, size, child, noise_model)
-        
+        layer = machine_layer(z, u, lbda, size, child, noise_model)
+
         self.layers.append(layer)
         
         return layer
@@ -704,11 +740,13 @@ class machine():
                 print('\r\titeration: ' +
                       str(pre_burn_in_iter) +
                       ' disperion.: ' +
-                      ', '.join([str(round(expit(np.mean(x())),3)) for x in lbdas]),
+                      '; '.join([x.print_value() for x in lbdas]),
                       end='')
 
             # draw samples
             [mat.sampling_fct(mat) for mat in mats]
+            if pre_burn_in_iter % 10 == 0:
+                [wrappers.reset_codes_wrapper(lr.u, lr.z, lr.noise_model) for lr in self.layers]
             if pre_burn_in_iter > fix_lbda_iters:
                 [lbda.sampling_fct(lbda) for lbda in lbdas]
                 shuffle(mats)
@@ -729,7 +767,7 @@ class machine():
                 print('\r\titeration: ' +
                       str(pre_burn_in_iter+burn_in_iter) +
                       ' recon acc.: ' +
-                       ', '.join([str(round(expit(np.mean(x())),3)) for x in lbdas]),
+                       '; '.join([x.print_value() for x in lbdas]),
                       end='')
                   
             # check convergence every convergence_window iterations
@@ -740,7 +778,7 @@ class machine():
                 # check convergence for all lbdas
                 if np.all([x.check_convergence(eps=eps) for x in lbdas]):
                     print('\n\tconverged at reconstr. accuracy: ' +
-                           ', '.join([str(round(expit(np.mean(x())),3)) for x in lbdas]))
+                          '; '.join([x.print_value() for x in lbdas]))
                     break
 
             # stop if max number of burn in inters is reached
@@ -755,9 +793,9 @@ class machine():
             shuffle(mats)
             [mat.sampling_fct(mat) for mat in mats]
             [lbda.sampling_fct(lbda) for lbda in lbdas]
+            if pre_burn_in_iter % 10 == 0:
+                [wrappers.reset_codes_wrapper(lr.z, lr.u, lr.noise_model) for lr in self.layers]
             [x.update_trace() for x in lbdas]
-
-            # 
             # print([x.trace_index for x in lbdas], burn_in_iter)
 
 
@@ -787,19 +825,12 @@ class machine():
         # list of parameters (lbdas) of matrix and parents
         lbdas = []
         for mat in mats:
-            lbdas += mat.lbdas
+            lbdas += [mat.lbda]
             if len(mat.parents) > 0:
-                lbdas += mat.parents[0].lbdas
+                lbdas += [mat.parents[0].lbda]
         # remove dubplicates preserving order
         lbdas = [x for x in unique_ordered(lbdas) if x is not None]
 
-        # for maxmachine, all lambdas of one layer have to be processed jointly
-        # remove maxmachine lambdas from list
-        lbdas = [x for x in lbdas if not x.layer.noise_model == 'maxmachine']
-        # add lists of maxmachine lambdas to list
-        for layer in self.layers:
-            if layer.noise_model == 'maxmachine':
-                lbdas.append(layer.lbdas)
 
         # assign sampling function to each mat
         for thing_to_update in mats+lbdas:
@@ -847,7 +878,7 @@ class machine():
                 print('\r\t' + 'iteration ' +
                       str(sampling_iter) +
                       '; recon acc.: ' +
-                      ', '.join([str(round(expit(np.mean(x())),3)) for x in lbdas]),
+                      '; '.join([x.print_value() for x in lbdas]),
                       end='')
 
         # set all parameters to MAP estimate

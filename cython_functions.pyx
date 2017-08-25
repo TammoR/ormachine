@@ -1,5 +1,5 @@
 #!python
-#cython: profile=False, language_level=3, boundscheck=True, wraparound=True, cdivision=True
+#cython: profile=False, language_level=3, boundscheck=True, wraparound=False, cdivision=True
 #cython --compile-args=-fopenmp --link-args=-fopenmp --force -a
 ## for compilation run: python setup.py build_ext --inplace
 
@@ -9,6 +9,9 @@ from libc.math cimport exp
 from libc.math cimport log
 from libc.stdlib cimport rand, RAND_MAX
 from libc.stdlib cimport malloc
+from IPython.core.debugger import Tracer
+from libcpp cimport bool as bool_t
+
 cimport numpy as np
 import numpy as np
 
@@ -18,31 +21,84 @@ ctypedef np.int8_t data_type_t
 data_type2 = np.int16
 ctypedef np.int16_t data_type_t2
 
+# cdef float child_node_contribution_to_maxmachine(data_type_t[:,:] sibling,
+#                                                  data_type_t[:] x_n,
+#                                                  data_type_t[:] child_n,
+#                                                  double[:] lbda,
+#                                                  int l_idx,
+#                                                  int[:] idx_sorted,
+#                                                  int D, int L):
+#     cdef int l_prime_idx
+#     cdef bint break_accumulator
+#     cdef float accumulator = 0
+    
+#     for d in range(D):
+#         # connection to child is cut
+#         if sibling[d,idx_sorted[l_idx]] == -1:
+#             continue
+
+#        # connection to child is intact
+#         else:
+#             break_accumulator = False # continue with next iteration over d, once acc is updated
+
+#             # is any older sibling explaining away the child?
+#             for l_prime_idx in range(l_idx):
+#                 if (x_n[idx_sorted[l_prime_idx]] == 1) and (sibling[d,idx_sorted[l_prime_idx]] == 1):
+#                     # break -> continue with next child
+#                     break_accumulator = True
+#                     break
+#             if break_accumulator == True:
+#                 continue
+
+#             # is any younger sibling trying to explain away the child?
+#             for l_prime_idx in range(l_idx+1,L):
+#                 if (x_n[idx_sorted[l_prime_idx]] == 1) and (sibling[d,idx_sorted[l_prime_idx]] == 1):
+#                     accumulator += child[d] * log(lbda[idx_sorted[l_idx]]/lbda[idx_sorted[l_prime_idx]])
+#                     break_accumulator = True
+#                     break
+#             if break_accumulator == True:
+#                 continue
+
+#             # no one is explaining away (compare to clamped alpha=0)
+#             accumulator += child_n[d] * log(lbda[idx_sorted[l_idx]]/lbda[-1])
+
+#     return accumulator
+    
+
+
 def draw_noparents_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
                                        data_type_t[:,:] sibling, # D x Lc; u_dl
                                        data_type_t[:,:] child, # N x Lc; x_nd
                                        double[:] lbda,
-                                       int[:] idx_sorted):
+                                       int[:] idx_sorted,
+                                       float prior,
+                                       double[:] bbp_k,
+                                       double[:] bbp_j,
+                                       int[:] k, # vector of counts of length D
+                                       int[:] j): # vector of counts of length N):
     """
-    TODO: 
-    implement prior (simple and binomial), 
-    sampling indicator, 
-    versions with parents
+    TODO:  sampling indicator, versions with parents
     """
                                
-    cdef float p, acc_child
-    cdef int n, l, d, N = x.shape[0], L = x.shape[1], D = sibling.shape[0]
+    # cdef float p
+    cdef int n, l_idx, d, N = x.shape[0], L = x.shape[1], D = sibling.shape[0]
     cdef bint break_accumulator
+    cdef float accumulator
 
     # iterate over codes in order of decreasing lbda
+    # binomial prior over N breaks paralellism
     for n in range(N): #, schedule=dynamic, nogil=True):
-        for l in range(L):
+        for l_idx in range(L):
             # iterate over children
+            
+            # accumulator = child_node_contribution_to_maxmachine(
+            #     sibling, x[n,:], child[n,:], lbda, l_idx, idx_sorted, D, L)
+                                       
             accumulator = 0
             for d in range(D):
                 
                 # connection to child is cut
-                if sibling[d,l] == -1:
+                if sibling[d,idx_sorted[l_idx]] == -1:
                     continue
                 
                 # connection to child is intact
@@ -50,8 +106,8 @@ def draw_noparents_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
                     break_accumulator = False # continue with next iteration over d, once acc is updated
 
                     # is any older sibling explaining away the child?
-                    for l_prime in range(l):
-                        if (x[n,idx_sorted[l_prime]] == 1) and (sibling[d,idx_sorted[l_prime]] == 1):
+                    for l_prime_idx in range(l_idx):
+                        if (x[n,idx_sorted[l_prime_idx]] == 1) and (sibling[d,idx_sorted[l_prime_idx]] == 1):
                             # break -> continue with next child
                             break_accumulator = True
                             break
@@ -59,21 +115,52 @@ def draw_noparents_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
                         continue
                     
                     # is any younger sibling trying to explain away the child?
-                    for l_prime in range(l+1,L):
-                        if (x[n,idx_sorted[l_prime]] == 1) and (sibling[d,idx_sorted[l_prime]] == 1):
-                            accumulator += child[n,d] * log(lbda[idx_sorted[l]]/.9*lbda[idx_sorted[l_prime]])
+                    for l_prime_idx in range(l_idx+1,L):
+                        if (x[n,idx_sorted[l_prime_idx]] == 1) and (sibling[d,idx_sorted[l_prime_idx]] == 1):
+                            accumulator += child[n,d] * log(lbda[idx_sorted[l_idx]]/lbda[idx_sorted[l_prime_idx]])
+
                             break_accumulator = True
                             break
                     if break_accumulator == True:
                         continue
-                    
-                    # no one is explaining away (compared to clamped alpha=0)
-                    accumulator += child[n,d] * log(2*lbda[idx_sorted[l]])
-                    
-            # swap
-            # print(sigmoid(accumulator))
-            x[n,l] = swap_metropolised_gibbs_unified(sigmoid(accumulator), x[n,l])
 
+                    # no one is explaining away (compare to clamped alpha=0)
+                    accumulator += child[n,d] * log(lbda[idx_sorted[l_idx]]/lbda[L])
+                    
+            x_old = x[n,idx_sorted[l_idx]]
+
+            prior = bbp_k[k[idx_sorted[l_idx]]] + bbp_j[j[n]]         
+
+            # x[n,l] = swap_metropolised_gibbs_unified(sigmoid(accumulator), x[n,l])  ### + prio
+            x[n, idx_sorted[l_idx]] = swap_gibbs(sigmoid(accumulator + prior)) # + prior
+
+            # update row/column count of ones for prior
+            k[idx_sorted[l_idx]] += x[n,idx_sorted[l_idx]] * (x[n,idx_sorted[l_idx]] != x_old)
+            j[n] += x[n,idx_sorted[l_idx]] * (x[n,idx_sorted[l_idx]] != x_old)
+                                       
+
+# def draw_oneparent_onechild_maxmachine(
+#         data_type_t[:,:] x,  # N x D
+#         data_type_t[:,:] z_pa, # N x Lp 
+#         data_type_t[:,:] u_pa, # D x Lp
+#         double[:] lbda_pa, 
+#         data_type_t[:,:] sibling, # D x Lc
+#         data_type_t[:,:] child, # N x Lc
+#         double[:] lbda,
+#         float prior,
+#         double[:] bbp_k,
+#         double[:] bbp_j,
+#         int[:] k, # vector of counts of length D
+#         int[:] j):
+    
+#     cdef int n, l_idx, d, N = x.shape[0], L = x.shape[1], D = sibling.shape[0]
+#     cdef bint break_accumulator
+#     cdef float accumulator_child, accumulator_parent
+
+#     for n in range(N):
+#         for l_idx in range(L):
+            
+            
 
 def draw_noparents_onechild_bbprior(data_type_t[:,:] x,  # N x D
                                     data_type_t[:,:] sibling, # D x Lc
@@ -341,6 +428,22 @@ def draw_oneparent_onechild_maxdens(
                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])            
 
                 
+cpdef void predict_single_latent(data_type_t[:,:] x,
+                                 data_type_t[:] u,
+                                 data_type_t[:] z):
+    """
+    compute output matrix for a single latent dimension (deterministic).
+    is equivalent to the product between to binary vectors
+    """
+    cdef int N = z.shape[0]
+    cdef int D = u.shape[0]
+    cdef int n, d
+
+    for n in range(N):
+        for d in range(D):
+            if (u[d] == 1) and (z[n] == 1):
+                x[n,d] = 1
+                
 
 cpdef inline int compute_g_alt_tilde_unified(data_type_t[:] u,
                                             data_type_t[:] z) nogil:
@@ -386,6 +489,16 @@ cpdef inline int score_no_parents_unified(
             score += x[d]
 
     return score
+
+
+cdef inline int swap_gibbs(float p) nogil:
+    """
+    Flip according to standard gibbs sampler
+    """
+    if rand()/float(RAND_MAX) > p:
+        return -1
+    else:
+        return 1
 
 
 # @cython.boundscheck(False)
@@ -574,7 +687,41 @@ cpdef void probabilistc_output(double[:,:] x,
             x[n, d] = (sgmd_lbda * (1-p_dn) + (p_dn*(1-sgmd_lbda) ) )
 
 
+cpdef void probabilistic_output_maxmachine(double[:,:] x,
+                                           double[:,:] u,
+                                           double[:,:] z,
+                                           double[:] alpha,
+                                           int[:] l_dcr):
 
+    cdef float s1
+    cdef int D = u.shape[0]
+    cdef int L = u.shape[1]
+    cdef int N = z.shape[0]
+    cdef int d, n, l
+    pvec = np.zeros(L)
+    # pvec_init = np.zeros(L, dtype=np.float32)
+    # cdef double[:] pvec = pvec_init
+    """
+    p_dn is the probability that every input is zero
+    """
+
+    for d in range(D):
+        for n in range(N):
+            for l in range(L):
+                pvec[l] = 1 - z[n,l_dcr[l]] * u[d,l_dcr[l]]
+                for l_prime in range(l):
+                    pvec[l] = pvec[l] * pvec[l_prime]
+            
+            s1 = z[n,l_dcr[0]]*u[d,l_dcr[0]]*alpha[l_dcr[0]]
+            for l in range(1,L):
+                s1 += z[n,l_dcr[l]]*u[d,l_dcr[l]]*alpha[l_dcr[l]]*pvec[l-1]
+            # noise dimension
+            s1 += pvec[L-1]*alpha[l_dcr[L]]
+            
+            x[n,d] = s1
+                
+
+            
 cpdef void probabilistc_output_indpndt(double[:,:] x,
                                        double[:,:] u,
                                        double[:,:] z,
