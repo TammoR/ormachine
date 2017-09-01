@@ -11,6 +11,7 @@ from libc.stdlib cimport rand, RAND_MAX
 from libc.stdlib cimport malloc
 from IPython.core.debugger import Tracer
 from libcpp cimport bool as bool_t
+cimport scipy.special.cython_special
 
 cimport numpy as np
 import numpy as np
@@ -21,50 +22,91 @@ ctypedef np.int8_t data_type_t
 data_type2 = np.int16
 ctypedef np.int16_t data_type_t2
 
-# cdef float child_node_contribution_to_maxmachine(data_type_t[:,:] sibling,
-#                                                  data_type_t[:] x_n,
-#                                                  data_type_t[:] child_n,
-#                                                  double[:] lbda,
-#                                                  int l_idx,
-#                                                  int[:] idx_sorted,
-#                                                  int D, int L):
-#     cdef int l_prime_idx
-#     cdef bint break_accumulator
-#     cdef float accumulator = 0
+cdef float child_node_contribution_to_maxmachine(data_type_t[:,:] x,
+                                                 data_type_t[:,:] sibling,
+                                                 data_type_t[:,:] child,
+                                                 double[:] lbda,
+                                                 int l_idx,
+                                                 int[:] idx_sorted,
+                                                 int n, int D, int L):
+    """
+    todo: precompute 1-lbda ?
+    """
+    cdef int l_prime_idx
+    cdef bint my_break_accumulator
+    cdef float my_accumulator = 0
     
-#     for d in range(D):
-#         # connection to child is cut
-#         if sibling[d,idx_sorted[l_idx]] == -1:
-#             continue
+    for d in range(D):
+        # connection to child is cut
+        if sibling[d,idx_sorted[l_idx]] == -1:
+            continue
 
-#        # connection to child is intact
-#         else:
-#             break_accumulator = False # continue with next iteration over d, once acc is updated
+       # connection to child is intact
+        else:
+            my_break_accumulator = False # continue with next iteration over d, once acc is updated
 
-#             # is any older sibling explaining away the child?
-#             for l_prime_idx in range(l_idx):
-#                 if (x_n[idx_sorted[l_prime_idx]] == 1) and (sibling[d,idx_sorted[l_prime_idx]] == 1):
-#                     # break -> continue with next child
-#                     break_accumulator = True
-#                     break
-#             if break_accumulator == True:
-#                 continue
+            # is any older sibling explaining away the child?
+            for l_prime_idx in range(l_idx):
+                if (x[n,idx_sorted[l_prime_idx]] == 1) and (sibling[d,idx_sorted[l_prime_idx]] == 1):
+                    # break -> continue with next child
+                    my_break_accumulator = True
+                    break
+            if my_break_accumulator == True:
+                continue
 
-#             # is any younger sibling trying to explain away the child?
-#             for l_prime_idx in range(l_idx+1,L):
-#                 if (x_n[idx_sorted[l_prime_idx]] == 1) and (sibling[d,idx_sorted[l_prime_idx]] == 1):
-#                     accumulator += child[d] * log(lbda[idx_sorted[l_idx]]/lbda[idx_sorted[l_prime_idx]])
-#                     break_accumulator = True
-#                     break
-#             if break_accumulator == True:
-#                 continue
+            # is any younger sibling trying to explain away the child?
+            for l_prime_idx in range(l_idx+1,L):
+                if (x[n,idx_sorted[l_prime_idx]] == 1) and (sibling[d,idx_sorted[l_prime_idx]] == 1):
+                    # print('break2')                    
+                    # print('lbda1: '+str(lbda[idx_sorted[l_idx]]))
+                    # print('lbda2: '+str(lbda[idx_sorted[l_prime_idx]]))
+                    # print('idx_sort1 :'+str(idx_sorted[l_idx]))
+                    # print('idx_sort2 :'+str(idx_sorted[l_prime_idx]))
+                    # print('idx1 :'+str(l_idx))
+                    # print('idx2 :'+str(l_prime_idx]))
+                    # print('\n')
+                    if child[n,d] == 1:
+                        my_accumulator += log(lbda[idx_sorted[l_idx]]/lbda[idx_sorted[l_prime_idx]])
+                    elif child[n,d] == -1:
+                        my_accumulator += log((1-lbda[idx_sorted[l_idx]])/(1-lbda[idx_sorted[l_prime_idx]]))
+                    my_break_accumulator = True
+                    break
+            if my_break_accumulator == True:
+                continue
 
-#             # no one is explaining away (compare to clamped alpha=0)
-#             accumulator += child_n[d] * log(lbda[idx_sorted[l_idx]]/lbda[-1])
+            # no one is explaining away (compare to clamped alpha=0)
+            # print(myaccumulator, child[n,d])
+            if child[n,d] == 1:
+                my_accumulator += log(lbda[idx_sorted[l_idx]]/lbda[L])
+            elif child[n,d] == -1:
+                my_accumulator += log((1-lbda[idx_sorted[l_idx]])/(1-lbda[L]))
 
-#     return accumulator
+    return my_accumulator
+
+
+cdef float parent_contribution_to_maxmachine(data_type_t[:,:] u_pa,
+                                             data_type_t[:,:] z_pa,
+                                             double[:] lbda_pa,
+                                             int[:] idx_sorted,
+                                             int n, int l):
+    """
+    Compute parent contribution for a given particular z_nl
+    """
+    cdef int m
+    cdef int M = u_pa.shape[1]
+
+    # print(np.array(lbda_pa))
+    # print(scipy.special.cython_special.logit(lbda_pa[0]))
+    # print(scipy.special.cython_special.logit(lbda_pa[M]))
+    # print(M)
     
+    for m in range(M):
+        if (z_pa[n,idx_sorted[m]] == 1) and (u_pa[l,idx_sorted[m]] == 1):
+            return scipy.special.cython_special.logit(lbda_pa[idx_sorted[m]])
 
+    # if no inpute was on, return clamped
+    return scipy.special.cython_special.logit(lbda_pa[M])
+    
 
 def draw_noparents_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
                                        data_type_t[:,:] sibling, # D x Lc; u_dl
@@ -91,75 +133,71 @@ def draw_noparents_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
         for l_idx in range(L):
             # iterate over children
             
-            # accumulator = child_node_contribution_to_maxmachine(
-            #     sibling, x[n,:], child[n,:], lbda, l_idx, idx_sorted, D, L)
-                                       
-            accumulator = 0
-            for d in range(D):
-                
-                # connection to child is cut
-                if sibling[d,idx_sorted[l_idx]] == -1:
-                    continue
-                
-                # connection to child is intact
-                else:
-                    break_accumulator = False # continue with next iteration over d, once acc is updated
+            accumulator = child_node_contribution_to_maxmachine(
+                x, sibling, child, lbda, l_idx, idx_sorted, n, D, L)
+                                                           
+            prior = bbp_k[k[idx_sorted[l_idx]]] + bbp_j[j[n]]
 
-                    # is any older sibling explaining away the child?
-                    for l_prime_idx in range(l_idx):
-                        if (x[n,idx_sorted[l_prime_idx]] == 1) and (sibling[d,idx_sorted[l_prime_idx]] == 1):
-                            # break -> continue with next child
-                            break_accumulator = True
-                            break
-                    if break_accumulator == True:
-                        continue
-                    
-                    # is any younger sibling trying to explain away the child?
-                    for l_prime_idx in range(l_idx+1,L):
-                        if (x[n,idx_sorted[l_prime_idx]] == 1) and (sibling[d,idx_sorted[l_prime_idx]] == 1):
-                            accumulator += child[n,d] * log(lbda[idx_sorted[l_idx]]/lbda[idx_sorted[l_prime_idx]])
-
-                            break_accumulator = True
-                            break
-                    if break_accumulator == True:
-                        continue
-
-                    # no one is explaining away (compare to clamped alpha=0)
-                    accumulator += child[n,d] * log(lbda[idx_sorted[l_idx]]/lbda[L])
-                    
             x_old = x[n,idx_sorted[l_idx]]
 
-            prior = bbp_k[k[idx_sorted[l_idx]]] + bbp_j[j[n]]         
-
-            # x[n,l] = swap_metropolised_gibbs_unified(sigmoid(accumulator), x[n,l])  ### + prio
-            x[n, idx_sorted[l_idx]] = swap_gibbs(sigmoid(accumulator + prior)) # + prior
+            x[n, idx_sorted[l_idx]]= swap_metropolised_gibbs_unified(sigmoid(accumulator + prior),
+                                                                     x[n, idx_sorted[l_idx]])  ### + prio
+            #x[n, idx_sorted[l_idx]] = swap_gibbs(sigmoid(accumulator + prior)) # + prior
 
             # update row/column count of ones for prior
-            k[idx_sorted[l_idx]] += x[n,idx_sorted[l_idx]] * (x[n,idx_sorted[l_idx]] != x_old)
-            j[n] += x[n,idx_sorted[l_idx]] * (x[n,idx_sorted[l_idx]] != x_old)
-                                       
+            if x[n, idx_sorted[l_idx]] != x_old:
+                 k[idx_sorted[l_idx]] += x[n,idx_sorted[l_idx]]
+                 j[n] += x[n,idx_sorted[l_idx]]
 
-# def draw_oneparent_onechild_maxmachine(
-#         data_type_t[:,:] x,  # N x D
-#         data_type_t[:,:] z_pa, # N x Lp 
-#         data_type_t[:,:] u_pa, # D x Lp
-#         double[:] lbda_pa, 
-#         data_type_t[:,:] sibling, # D x Lc
-#         data_type_t[:,:] child, # N x Lc
-#         double[:] lbda,
-#         float prior,
-#         double[:] bbp_k,
-#         double[:] bbp_j,
-#         int[:] k, # vector of counts of length D
-#         int[:] j):
-    
-#     cdef int n, l_idx, d, N = x.shape[0], L = x.shape[1], D = sibling.shape[0]
-#     cdef bint break_accumulator
-#     cdef float accumulator_child, accumulator_parent
+                 
+def draw_oneparent_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
+                                       data_type_t[:,:] sibling, # D x Lc; u_dl
+                                       data_type_t[:,:] child, # N x Lc; x_nd
+                                       double[:] lbda,
+                                       int[:] idx_sorted,
+                                       double[:] bbp_k,
+                                       double[:] bbp_j,
+                                       int[:] k, # vector of counts of length D
+                                       int[:] j, # vector of counts of length N):
+                                       data_type_t[:,:] u_pa,
+                                       data_type_t[:,:] z_pa,
+                                       double[:] lbda_pa,
+                                       int[:] idx_sorted_pa):
+    """
+    TODO:  sampling indicator, versions with parents
+    """
+                               
+    # cdef float p
+    cdef int n, l_idx, d, N = x.shape[0], L = x.shape[1], D = sibling.shape[0]
+    cdef bint break_accumulator
+    cdef float accumulator, accumulator_new
 
-#     for n in range(N):
-#         for l_idx in range(L):
+    # iterate over codes in order of decreasing lbda
+    # binomial prior over N breaks paralellism
+    for n in range(N): #, schedule=dynamic, nogil=True):
+        for l_idx in range(L):
+            # iterate over children
             
+            accumulator_child = child_node_contribution_to_maxmachine(
+                x, sibling, child, lbda, l_idx, idx_sorted, n, D, L)
+
+            accumulator_par = parent_contribution_to_maxmachine(
+                u_pa, z_pa, lbda_pa, idx_sorted_pa, n, idx_sorted[l_idx])
+                                                           
+            prior = bbp_k[k[idx_sorted[l_idx]]] + bbp_j[j[n]]
+
+            x_old = x[n,idx_sorted[l_idx]]
+
+            x[n, idx_sorted[l_idx]] = swap_metropolised_gibbs_unified(
+                sigmoid(accumulator_child + accumulator_par + prior),
+                x[n, idx_sorted[l_idx]])
+            # x[n, idx_sorted[l_idx]] = swap_gibbs(sigmoid(accumulator_child + prior)) # + prior
+
+            # update row/column count of ones for prior
+            if x[n, idx_sorted[l_idx]] != x_old:
+                 k[idx_sorted[l_idx]] += x[n,idx_sorted[l_idx]]
+                 j[n] += x[n,idx_sorted[l_idx]]
+                 
             
 
 def draw_noparents_onechild_bbprior(data_type_t[:,:] x,  # N x D
@@ -427,10 +465,10 @@ def draw_oneparent_onechild_maxdens(
                 
                 x[n, d] = swap_metropolised_gibbs_unified(p, x[n,d])            
 
+
                 
-cpdef void predict_single_latent(data_type_t[:,:] x,
-                                 data_type_t[:] u,
-                                 data_type_t[:] z):
+cpdef np.ndarray[data_type_t, ndim = 2] predict_single_latent(data_type_t[:] u,
+                                                               data_type_t[:] z):
     """
     compute output matrix for a single latent dimension (deterministic).
     is equivalent to the product between to binary vectors
@@ -439,10 +477,13 @@ cpdef void predict_single_latent(data_type_t[:,:] x,
     cdef int D = u.shape[0]
     cdef int n, d
 
+    cdef np.ndarray[data_type_t, ndim=2] x = np.zeros([z.shape[0], u.shape[0]], dtype=np.int8)
+
     for n in range(N):
         for d in range(D):
             if (u[d] == 1) and (z[n] == 1):
                 x[n,d] = 1
+    return x
                 
 
 cpdef inline int compute_g_alt_tilde_unified(data_type_t[:] u,
@@ -716,7 +757,7 @@ cpdef void probabilistic_output_maxmachine(double[:,:] x,
             for l in range(1,L):
                 s1 += z[n,l_dcr[l]]*u[d,l_dcr[l]]*alpha[l_dcr[l]]*pvec[l-1]
             # noise dimension
-            s1 += pvec[L-1]*alpha[l_dcr[L]]
+            s1 += pvec[L-1]*alpha[L]
             
             x[n,d] = s1
                 

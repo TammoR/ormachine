@@ -221,36 +221,18 @@ def draw_lbda_maxmachine_wrapper(parm):
     D = u().shape[0]
     L = z().shape[1]
 
-    # hack: if the codes is all zero, set corresponding z all zero.
-    # reset_zeroed_codes(z, u, parm.layer.noise_model)
-
-    ## use fration of correct predictions -> overrates small codes
-        
     mask = np.zeros([N,D], dtype=bool)
-    # accumulate prediction over l's
-
-    # fct to compute predictions for single code l
-    l_predict = lambda l,u,z: np.dot(z()[:,l:l+1]==1,u()[:,l:l+1].transpose()==1)
-
-    # def l_predict(l,u,z):
-    #     my_x = np.zeros([z().shape[0],u().shape[0]], dtype=np.int8)
-    #     cf.predict_single_latent(my_x, u()[:,l], z()[:,l])
-    #     return np.array(my_x, dtype=bool)
-
-    #predictions = [(l_predict(l, u, z)==1) for l in range(L)]
-    
     l_list = range(L)
 
     for iter_index in range(L):
 
         # get positive predictive rate for each code
-        # todo: should only compute predictions once! -> but then need to store
-        # -> acutally takes longer
-        l_pp_rate = [np.mean(x()[(l_predict(l, u, z)==1) & ~mask] == 1) for l in l_list] # = TP/ND
-        #l_pp_rate = [np.mean(x()[predictions[l]==1 & ~mask] == 1) for l in l_list]
- 
+        # todo: should only compute predictions once! -> but then need to store -> acutally takes longer
+        # = TP/ND
+        l_pp_rate = [np.mean(x()[(cf.predict_single_latent(u()[:,l], z()[:,l])==1) & ~mask] == 1) for l in l_list]
+
         #if np.any(l_pp_rate == < .01):
-        l_pp_rate = [y if not np.isnan(y) else 0.5 for y in l_pp_rate]
+        l_pp_rate = [y if not np.isnan(y) else 0.0 for y in l_pp_rate]
 
         # find l with max predictive power
         l_max_idx = np.argmax(l_pp_rate)
@@ -261,17 +243,17 @@ def draw_lbda_maxmachine_wrapper(parm):
         # assign corresponding alpha
         # mind: parm is of (fixed) size L, l_pp_rate gets smaller every iteration
         try:
-            parm()[l_max] = np.max([0.5,l_pp_rate[l_max_idx]])
+            parm()[l_max] = np.max([0.0,l_pp_rate[l_max_idx]])
         except:
             Tracer()()
 
         # compute prediction for the current latent dimension
-        prediction = l_predict(l_max,u,z)
+        prediction = cf.predict_single_latent(u()[:,l_max], z()[:,l_max])# l_predict(l_max,u,z)
         #prediction = predictions[l_max]
         
         # mask the predicted values
         mask_old = mask
-        mask += prediction
+        mask += prediction==1
         assert np.mean(mask_old) <= np.mean(mask)
             
         # remove the dimenson from l_list
@@ -287,37 +269,97 @@ def draw_lbda_maxmachine_wrapper(parm):
     else:
         parm()[-1] = np.max([0, np.min([.5, np.mean(x()[~mask]==1)])])
         
-
-def reset_codes_wrapper(z, u, noise_model):
-    reset_codes(z, u, noise_model)
-    reset_codes(u, z, noise_model)
+def clean_up_codes(layer, noise_model):
+        # remove duplicates
     
+    def remove_dimension(l_prime, layer):
+        u = layer.u; z = layer.z; lbda = layer.lbda
+        u.val = np.delete(u.val, l_prime, axis=1)
+        z.val = np.delete(z.val, l_prime, axis=1)
+        lbda.val = np.delete(u.layer.lbda(), l_prime)
+        layer.size -= 1
+        if noise_model is 'maxmachine': 
+            #z.k[l_prime] = 0
+            #u.k[l_prime] = 0
+
+            # binomial prior per code
+            u.bbp_k = compute_bp(u().shape[0], .1, 10)
+            u.k = np.array(np.sum(u()==1, 0), dtype=np.int32)    
+
+            # binomial prior per attribute
+            u.bbp_j = compute_bp(u().shape[1], .1, 2)
+            u.j = np.array(np.sum(u()==1, 1), dtype=np.int32)
+
+            # dummy prios on z
+            z.bbp_k = np.zeros(z().shape[0]+1)
+            z.k = np.array(np.sum(z()==1, 0), dtype=np.int32)    
+
+            # dummy prios on z per attribute
+            z.bbp_j = np.zeros(z().shape[1]+1)
+            z.j = np.array(np.sum(z()==1, 1), dtype=np.int32)
+
+
+    # clean duplicates
+    l = 0
+    reduction_applied = False
+    while l < layer.size:
+        l_prime = l+1
+        while l_prime < layer.size:
+            if (np.all(layer.u()[:,l] == layer.u()[:,l_prime]) or
+            np.all(layer.z()[:,l] == layer.z()[:,l_prime])):
+                # print('remove duplicate dimension')
+                reduction_applied = True
+                remove_dimension(l_prime, layer)
+            l_prime += 1
+        l += 1
+
+    # clean by alpha threshold
+    l = 0
+    while l < layer.size:
+        if layer.lbda()[l] < 1e-4:
+            # print('remove useless dimension')
+            reduction_applied = True
+            remove_dimension(l, layer)
+        l += 1
+
+    return reduction_applied
+        
+def reset_codes_wrapper(z, u, noise_model):
+    if True:
+        reset_codes(z, u, noise_model)
+        reset_codes(u, z, noise_model)
+  
 def reset_codes(z, u, noise_model):
 
     # reset duplicates
-    for l in range(u().shape[1]):
-        for l_prime in range(l+1, u().shape[1]):
-            if np.all(u()[:,l] == u()[:,l_prime]):
-                print('reset duplicates')
-
-                z()[:,l_prime] == -1
-                u()[:,l_prime] == -1
-                if noise_model is 'maxmachine': 
-                    z.k[l_prime] = 0
-                    u.k[l_prime] = 0
-                    u.j = np.array(np.sum(u()==1, 1), dtype=np.int32)
-                    z.j = np.array(np.sum(z()==1, 1), dtype=np.int32)
+    if False:
+        for l in range(u().shape[1]):
+            for l_prime in range(l+1, u().shape[1]):
+                if np.all(u()[:,l] == u()[:,l_prime]):
+                    print('reset duplicates')
+                    z()[:,l_prime] = -1
+                    u()[:,l_prime] = -1
+                    if noise_model is 'maxmachine': 
+                        #z.k[l_prime] = 0
+                        #u.k[l_prime] = 0
+                        
+                        u.j = np.array(np.sum(u()==1, 1), dtype=np.int32)
+                        z.j = np.array(np.sum(z()==1, 1), dtype=np.int32)
+                        
+                        u.k[l_prime] = 0 # = np.array(np.sum(u()==1, 0), dtype=np.int32)
+                        z.k[l_prime] = 0 # np.array(np.sum(z()==1, 0), dtype=np.int32)
 
     # reset zeroed codes
-    for l in range(u().shape[1]):
-        if np.all(u()[:,l] == -1):
-            print('reset zeroed')
-            z()[:,l] = -1
-            # only needed for binomial / beta-binomial prior
-            # TODO implement these prior for ormachine
-            if noise_model is 'maxmachine': 
-                z.k[l] = 0
-                z.j = np.array(np.sum(z()==1, 1), dtype=np.int32)
+    if False:
+        for l in range(u().shape[1]):
+            if np.all(u()[:,l] == -1):
+                print('reset zeroed')
+                z()[:,l] = -1
+                # only needed for binomial / beta-binomial prior
+                # TODO implement these prior for ormachine
+                if noise_model is 'maxmachine': 
+                    z.k[l] = 0
+                    z.j = np.array(np.sum(z()==1, 1), dtype=np.int32)
 
     # reset nested codes
     if False:
@@ -330,11 +372,14 @@ def reset_codes(z, u, noise_model):
                     print('reset nesting '+str(l)+' '+str(l_prime) +
                           ' ' + str(np.sum(u()[:,l]==1)) +
                           ' ' + str(np.sum(u()[:,l_prime]==1)))
-                    u()[u()[:,l_prime]==1,l] == -1
+                    u()[u()[:,l_prime]==1,l] = -1
+                    # z()[z()[:,l]==1,l_prime] = 1
 
                     if noise_model is 'maxmachine':
                         u.k = np.array(np.sum(u()==1, 0), dtype=np.int32)
                         u.j = np.array(np.sum(u()==1, 1), dtype=np.int32)
+                        z.k = np.array(np.sum(z()==1, 0), dtype=np.int32)
+                        z.j = np.array(np.sum(z()==1, 1), dtype=np.int32)
 
 
 def draw_lbda_wrapper(parm):
@@ -425,3 +470,9 @@ def draw_unified_wrapper_u(mat):
         mat.lbda(), # own parameter: double
         mat.logit_bernoulli_prior,
         mat.sampling_indicator)
+
+
+def compute_bp(n, q, tau=1):
+    exp_bp = [(q*(n-k*tau)) / ((1-q)*(k*tau+1)) for k in range(n+1)]
+    bp = [np.log(x) if (x > 0) else -np.infty for x in exp_bp]
+    return np.array(bp, dtype=float)    
