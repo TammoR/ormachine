@@ -229,32 +229,44 @@ def draw_lbda_maxmachine_wrapper(parm):
         # get positive predictive rate for each code
         # todo: should only compute predictions once! -> but then need to store -> acutally takes longer
         # = TP/ND
-        l_pp_rate = [np.mean(x()[(cf.predict_single_latent(u()[:,l], z()[:,l])==1) & ~mask] == 1) for l in l_list]
+        predictions = [cf.predict_single_latent(u()[:,l], z()[:,l])==1 for l in l_list]
+
+        # l_pp_rate = [np.mean(x()[predictions[l] & ~mask] == 1) for l in range(len(l_list))]
+
+        TP = [np.sum(x()[predictions[l] & ~mask] == 1) for l in range(len(l_list))]
+        FP = [np.sum(x()[predictions[l] & ~mask] == -1) for l in range(len(l_list))]
+        l_pp_rate = [tp/float(tp+fp) for tp, fp in zip(TP, FP)]
 
         #if np.any(l_pp_rate == < .01):
-        l_pp_rate = [y if not np.isnan(y) else 0.0 for y in l_pp_rate]
+        #l_pp_rate = [y if not np.isnan(y) else 0.0 for y in l_pp_rate]
 
         # find l with max predictive power
         l_max_idx = np.argmax(l_pp_rate)
         l_max = l_list[l_max_idx]
 
-        #print(l_max, np.mean(mask[:,-3]), l_pp_rate[l_max_idx])
-        #print('\n')
+
         # assign corresponding alpha
         # mind: parm is of (fixed) size L, l_pp_rate gets smaller every iteration
-        try:
-            parm()[l_max] = np.max([0.0,l_pp_rate[l_max_idx]])
-        except:
-            Tracer()()
+        ## flat prior on alpha
+        # parm()[l_max] = np.max([0.0,l_pp_rate[l_max_idx]])
+        # parm()[l_max] = TP[l_max_idx]/float(TP[l_max_idx]+FP[l_max_idx])
+        ## beta_prior on alpha
+        
+        parm()[l_max] = ( ( TP[l_max_idx] + parm.beta_prior[0] - 1) /
+                  float(TP[l_max_idx] + FP[l_max_idx] +
+                        parm.beta_prior[0] + parm.beta_prior[1] - 2) )
 
         # compute prediction for the current latent dimension
-        prediction = cf.predict_single_latent(u()[:,l_max], z()[:,l_max])# l_predict(l_max,u,z)
-        #prediction = predictions[l_max]
+        # prediction = cf.predict_single_latent(u()[:,l_max], z()[:,l_max])# l_predict(l_max,u,z)
         
+        
+        if np.isnan(parm()[l_max]):
+            parm()[l_max] = 0
+       
         # mask the predicted values
-        mask_old = mask
-        mask += prediction==1
-        assert np.mean(mask_old) <= np.mean(mask)
+        # mask_old = mask
+        mask +=  predictions[l_max_idx]==1
+        # assert np.mean(mask_old) <= np.mean(mask)
             
         # remove the dimenson from l_list
         # l_list = [i for i in l_list if i != l_max]
@@ -262,15 +274,24 @@ def draw_lbda_maxmachine_wrapper(parm):
 
     assert len(l_list) == 0
     
-    # should put some reasonable prior on lbda_noise
     if np.isnan(parm()[-1]):
         parm()[-1] = 0.0
         Tracer()()
     else:
-        parm()[-1] = np.max([0, np.min([.5, np.mean(x()[~mask]==1)])])
+        P_remain = np.sum(x()[~mask]==1)
+        N_remain = np.sum(x()[~mask]==-1)
+
+        # old version does not work with missingd data (x=0)
+#        p_old = np.max([0, np.min([.5, np.mean(x()[~mask]==1)] )])
+        p_new = ((P_remain + parm.beta_prior_clamped[0] - 1)/
+                 float(P_remain + N_remain + parm.beta_prior_clamped[0] +
+                       parm.beta_prior_clamped[1] - 2))
+
+        if np.isnan(p_new):
+            Tracer()()
+        parm()[-1] = p_new
         
 def clean_up_codes(layer, noise_model):
-        # remove duplicates
     
     def remove_dimension(l_prime, layer):
         u = layer.u; z = layer.z; lbda = layer.lbda
@@ -278,6 +299,20 @@ def clean_up_codes(layer, noise_model):
         z.val = np.delete(z.val, l_prime, axis=1)
         lbda.val = np.delete(u.layer.lbda(), l_prime)
         layer.size -= 1
+        for iter_mat in [u,z]:
+            if len(iter_mat.parents) != 0:
+                for parent in iter_mat.parents:
+                    if parent.role == 'features':
+                        parent.val = np.delete(parent.val, l_prime, axis=0)
+                        if noise_model is 'maxmachine':
+                            # binomial prior per code
+                            parent.bbp_k = compute_bp(u().shape[0], .1, 10)
+                            parent.k = np.array(np.sum(u()==1, 0), dtype=np.int32)    
+
+                            # binomial prior per attribute
+                            parent.bbp_j = compute_bp(u().shape[1], .1, 2)
+                            parent.j = np.array(np.sum(u()==1, 1), dtype=np.int32)
+            
         if noise_model is 'maxmachine': 
             #z.k[l_prime] = 0
             #u.k[l_prime] = 0
@@ -316,7 +351,7 @@ def clean_up_codes(layer, noise_model):
     # clean by alpha threshold
     l = 0
     while l < layer.size:
-        if layer.lbda()[l] < 1e-4:
+        if layer.lbda()[l] < 1e-3:
             # print('remove useless dimension')
             reduction_applied = True
             remove_dimension(l, layer)

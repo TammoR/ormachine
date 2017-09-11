@@ -106,7 +106,20 @@ cdef float parent_contribution_to_maxmachine(data_type_t[:,:] u_pa,
 
     # if no inpute was on, return clamped
     return scipy.special.cython_special.logit(lbda_pa[M])
-    
+
+                                 
+                                 
+# pass prior as function to sampling function -> TODO
+# https://stackoverflow.com/questions/14124049/is-there-any-type-for-function-in-cython
+# ctypedef float (*prior_fct_type) (double[:] bbp_k, int k,
+#                              double[:] bbp_j, int j)
+
+# cpdef float bbp_prior_contribution(double[:] bbp_k,
+#                                  int k,
+#                                  double[:] bbp_j,
+#                                  int j):
+#     return bbp_k[k] + bbp_j[j]
+
 
 def draw_noparents_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
                                        data_type_t[:,:] sibling, # D x Lc; u_dl
@@ -137,7 +150,11 @@ def draw_noparents_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
                 x, sibling, child, lbda, l_idx, idx_sorted, n, D, L)
                                                            
             prior = bbp_k[k[idx_sorted[l_idx]]] + bbp_j[j[n]]
-
+            
+            # prior_new = bbp_prior_contribution(bbp_k, k[idx_sorted[l_idx]],
+            #                                bbp_j, j[n])
+            # assert prior_new == prior_old
+            
             x_old = x[n,idx_sorted[l_idx]]
 
             x[n, idx_sorted[l_idx]]= swap_metropolised_gibbs_unified(sigmoid(accumulator + prior),
@@ -732,6 +749,7 @@ cpdef void probabilistic_output_maxmachine(double[:,:] x,
                                            double[:,:] u,
                                            double[:,:] z,
                                            double[:] alpha,
+                                           double[:] pvec,
                                            int[:] l_dcr):
 
     cdef float s1
@@ -739,29 +757,33 @@ cpdef void probabilistic_output_maxmachine(double[:,:] x,
     cdef int L = u.shape[1]
     cdef int N = z.shape[0]
     cdef int d, n, l
-    pvec = np.zeros(L)
+    #cdef int[:] l_dcr
+    #cdef double[:] pvec
+    #pvec[:] = 0
+    #cdef np.ndarray[np.float_t, ndim=1] pvec = np.zeros(L, dtype=np.float16)
     # pvec_init = np.zeros(L, dtype=np.float32)
     # cdef double[:] pvec = pvec_init
     """
     p_dn is the probability that every input is zero
     """
 
-    for d in range(D):
+    for d in range(D): #, schedule=dynamic, nogil=False):
         for n in range(N):
             for l in range(L):
-                pvec[l] = 1 - z[n,l_dcr[l]] * u[d,l_dcr[l]]
+                l_dcr = np.array(np.argsort(np.multiply(np.multiply(alpha[:-1], z[n,:]),u[d,:]))[::-1],
+                                 dtype=np.int32)
+                #print(l_dcr)
+                #print('lala')
+                pvec[l] = 1 - (z[n,l_dcr[l]] * u[d,l_dcr[l]])
                 for l_prime in range(l):
                     pvec[l] = pvec[l] * pvec[l_prime]
-            
-            s1 = z[n,l_dcr[0]]*u[d,l_dcr[0]]*alpha[l_dcr[0]]
-            for l in range(1,L):
-                s1 += z[n,l_dcr[l]]*u[d,l_dcr[l]]*alpha[l_dcr[l]]*pvec[l-1]
-            # noise dimension
-            s1 += pvec[L-1]*alpha[L]
-            
-            x[n,d] = s1
-                
 
+            x[n,d] = z[n,l_dcr[0]]*u[d,l_dcr[0]]*alpha[l_dcr[0]]
+            for l in range(1,L):
+                x[n,d] += z[n,l_dcr[l]]*u[d,l_dcr[l]]*alpha[l_dcr[l]]*pvec[l-1]
+            # noise dimension
+            x[n,d] += pvec[L-1]*alpha[L]
+            
             
 cpdef void probabilistc_output_indpndt(double[:,:] x,
                                        double[:,:] u,

@@ -543,14 +543,18 @@ class machine_layer():
         assert self.z.child is self.u.child
         return self.z.child
 
-    def output(self, u=None, z=None):
+    def output(self, u=None, z=None, recon_model=None):
         """
         propagate probabilities to child layer
         u and z are optional and intended for use
         when propagating through mutliple layers.
         outputs a probability of x being 1.
         """
-
+        if recon_model is None:
+            noise_model = self.noise_model
+        else:
+            noise_model = recon_model
+            
         if u is None:
             u = self.u.mean()
         if z is None:
@@ -562,24 +566,40 @@ class machine_layer():
     
         x = np.empty((N, D))
 
-        if self.noise_model == 'coupled':
+        if noise_model == 'coupled':
             cf.probabilistc_output(
                 x, .5*(u+1), .5*(z+1), self.lbda.mean(), D, N, L)
-        elif 'independent' in self.noise_model:
+        elif 'independent' in noise_model:
             cf.probabilistc_output_indpndt(
                 x, .5*(u+1), .5*(z+1), self.lbda.mean()[1], self.lbda.mean()[0], D, N, L)
-        elif self.noise_model is 'maxmachine':
+        elif noise_model is 'maxmachine_plugin':
             # check that the background noise is smaller than any latent dimension's noise
             if self.lbda.mean()[-1] != np.min(self.lbda.mean()):
                 print('we have alphas < alpha[-1]')
             cf.probabilistic_output_maxmachine(
                 x, .5*(u+1), .5*(z+1), self.lbda.mean(),
-                np.array(np.argsort(-self.lbda.mean()[:-1]), dtype=np.int32))
+                np.zeros(len(self.lbda()), dtype=np.float64),
+                np.zeros(len(self.lbda()), dtype=np.int32))
+                #np.array(np.argsort(-self.lbda.mean()[:-1]), dtype=np.int32))
+        elif noise_model is 'maxmachine':
+            print('Computing MC estimate of data reconstruction')
+            u_tr = self.u.trace
+            z_tr = self.z.trace
+            alpha_tr = self.lbda.trace
+            x = np.zeros([N,D])
+            trace_len = u_tr.shape[0]
+            for tr_idx in range(trace_len):
+                x += maxmachine_forward_pass(u_tr[tr_idx,:,:]==1,
+                                             z_tr[tr_idx,:,:]==1,
+                                             alpha_tr[tr_idx,:])
+            x /= trace_len
+            
         else:
             raise StandardError('Output function not defined for given noise model.')
     
         return x
-
+    
+    
     def log_likelihood(self):
         """
         Return log likelihood of the assoicated child, given the layer.
@@ -691,12 +711,14 @@ class machine():
         if 'coupled' in noise_model:
             lbda = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
             # lbdas = [lbda]
+            
         elif 'independent' in noise_model:
             print('All noise parameters are initialised with lbda_init')
             lbda = self.add_parameter(attached_matrices=(z,u), val=np.array(2*[lbda_init]), noise_model=noise_model)
             #mu = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
             #lbda = self.add_parameter(attached_matrices=(z,u), val=lbda_init, noise_model=noise_model)
             # lbdas = [mu, lbda]
+            
         elif noise_model == 'maxmachine': # experimental
             if type(lbda_init) is not list:
                 lbda = self.add_parameter(attached_matrices=(z,u),
@@ -757,7 +779,7 @@ class machine():
                 # [wrappers.reset_codes_wrapper(lr.u, lr.z, lr.noise_model) for lr in self.layers]
             if pre_burn_in_iter > fix_lbda_iters:
                 [lbda.sampling_fct(lbda) for lbda in lbdas]
-                shuffle(mats)
+                # shuffle(mats)
 
                     
         # allocate array for lambda traces for burn in detection
@@ -788,16 +810,19 @@ class machine():
                     print('\n\tconverged at reconstr. accuracy: ' +
                           '\t--\t'.join([x.print_value() for x in lbdas]))
                     
-                    if False:
+                    if True:
                         # check for dimensios to be removed and restart burn-in i.a.
-                        if np.any([wrappers.clean_up_codes(lr, lr.noise_model) for lr in self.layers]):
+                        if np.any([wrappers.clean_up_codes(lr, lr.noise_model)
+                                   for lr in self.layers if lr.auto_clean_up is True]):
                             print('\tremove duplicate or useless latent dimensions and restart burn-in')
                             for lbda in lbdas:
                                 lbda.allocate_trace_arrays(convergence_window)
                                 lbda.trace_index = 0          # reset trace index
                         else:
+                            self.burn_in_iters = burn_in_iter+pre_burn_in_iter # save no of burn in iters
                             break
                     else:
+                        self.burn_in_iters = burn_in_iter+pre_burn_in_iter # save no of burn in iters
                         break
 
             # stop if max number of burn in inters is reached
@@ -806,10 +831,11 @@ class machine():
                 # reset trace index
                 for lbda in lbdas:
                     lbda.trace_index = 0
+                self.burn_in_iters = burn_in_iter
                 break
             
             # draw sampels
-            shuffle(mats)
+            # shuffle(mats)
             [mat.sampling_fct(mat) for mat in mats]
             [lbda.sampling_fct(lbda) for lbda in lbdas]
             if False: # pre_burn_in_iter % 10 == 0:
@@ -884,7 +910,7 @@ class machine():
         print('drawing samples...')
         for sampling_iter in range(1, no_samples+1):
 
-            shuffle(mats)  # TODO
+            # shuffle(mats)  # TODO
             # sample mats and write to trace
             [mat.sampling_fct(mat) for mat in mats]
             [mat.update_trace() for mat in mats]
@@ -902,7 +928,7 @@ class machine():
 
         # some sanity checks
         for layer in self.layers:
-            if layer.noise_model == 'maxmachine':
+            if False and layer.noise_model == 'maxmachine':
                 assert np.all(layer.u.j == np.array(np.sum(layer.u()==1, 1), dtype=np.int32))
                 assert np.all(layer.z.j == np.array(np.sum(layer.z()==1, 1), dtype=np.int32))
                 assert np.all(layer.u.k == np.array(np.sum(layer.u()==1, 0), dtype=np.int32))
@@ -919,47 +945,67 @@ def logsumexp(a):
     return out
 
 
-def maxmachine_relevance(layer):
+def maxmachine_relevance(layer, model_type='mcmc'):
     """
     Compute the fraction of 1s that are modelled by a given latent dimension,
     somewhat akin to eigenvalues in PCA
     """
 
-    alphas = layer.lbda()
-    x = layer.child()
-    z = (layer.z.mean()+1)*.5
-    u = (layer.u.mean()+1)*.5
-    N = z.shape[0]
-    D = u.shape[0]
-    L = z.shape[1]
+    if model_type is 'plugin': 
+        alphas = layer.lbda()
+        x = layer.child()
+        # add clamped units
+        z = np.concatenate([(layer.z.mean()+1)*.5,np.ones([layer.z().shape[0],1])], axis=1)
+        u = np.concatenate([(layer.u.mean()+1)*.5,np.ones([layer.u().shape[0],1])], axis=1)
+        N = z.shape[0]
+        D = u.shape[0]
+        L = z.shape[1]
 
-    no_ones = np.sum(x==1)
-    idxs = np.where(layer.child()==1)
-    idxs = zip(idxs[0],idxs[1])
-    l_score = np.zeros(len(alphas))
+        # # we need to argsort all z*u*alpha. This is of size NxDxL!
+        # l_sorted = np.zeros([N,D,L], dtype=np.int8)
+        # for n in range(N): # could be parallelised -> but no argsort in cython without extra pain
+        #     for d in range(D):
+        #         l_sorted[n,d,:] = np.argsort(alphas*u[d,:]*z[n,:])
 
-    # iterate from largest to smallest alpha
-    # todo: l_prod needs only vlaues for x[n,d] = 1, only iterate over these, too.
-    l_prod = np.ones(x.shape)
-    for l in np.argsort(-alphas[:-1]):
-        l_score_temp = 0
-        # iterate over x[n,d] = 1 indices
-        for n,d in idxs:
-            l_score_temp += u[d,l]*z[n,l]*alphas[l]*l_prod[n,d]
-            l_prod[n,d] *= (1-u[d,l]*z[n,l])
-        l_score[l] = (l_score_temp/no_ones)
+        eigenvals = np.zeros(len(alphas)) # array for results
+        idxs = np.where(layer.child()==1)
+        idxs = zip(idxs[0],idxs[1]) # indices of n,d where x[n,d]=1
+        no_ones = len(idxs)
 
-    l = L
-    print(l)
-    l_score_temp = 0
-    for n in range(N):
-        for d in range(D):
-            if x[n,d] != 1:
-                continue
-            else:
-                l_score_temp += alphas[l]*l_prod[n,d]
-    l_score[l] = (l_score_temp/no_ones)
+        # iterate from largest to smallest alpha doesn't work
+        for l in range(L):
+            for n,d in idxs:
+                eigenvals[l] += z[n,l]*u[d,l]*alphas[l] * np.prod(
+                    [1-z[n,l_prime]*u[d,l_prime] for l_prime in range(L) 
+                     if z[n,l_prime]*u[d,l_prime]*alphas[l_prime] > z[n,l]*u[d,l]*alphas[l]])
+        eigenvals /= len(idxs)
+
+    elif model_type is 'mcmc':
+        alpha_tr = layer.lbda.trace
+        z_tr = layer.z.trace
+        u_tr = layer.u.trace
+        x = layer.child()
+        tr_len = u_tr.shape[0]
+        eigenvals = np.zeros(alpha_tr.shape[1])
+
+        for tr_idx in range(tr_len):
+            for l in range(u_tr.shape[2]):
+                eigenvals[l] += alpha_tr[tr_idx,l] * np.sum(
+                    x[np.dot(z_tr[tr_idx,:,l:l+1]==1,
+                           u_tr[tr_idx,:,l:l+1].transpose()==1)]==1)
+            eigenvals[-1] += alpha_tr[tr_idx, -1]
+
+        eigenvals /= float(tr_len)*np.sum(x==1)
+
+    return eigenvals
+
         
-        
-    return l_score
-        
+def maxmachine_forward_pass(u, z, alpha):
+    x = np.zeros([z.shape[0], u.shape[0]])
+
+    for l in np.argsort(-alpha[:-1]):
+        x[x==0] += alpha[l]*np.dot(z[:,l:l+1],u[:,l:l+1].transpose())[x==0]
+
+    x[x==0] = alpha[-1]
+
+    return x
