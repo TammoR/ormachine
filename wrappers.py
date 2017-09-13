@@ -223,19 +223,32 @@ def draw_lbda_maxmachine_wrapper(parm):
 
     mask = np.zeros([N,D], dtype=bool)
     l_list = range(L)
+    
+    method1 = False
+    method2 = ~method1
+
+    predictions = [cf.predict_single_latent(u()[:,l], z()[:,l])==1 for l in l_list]
+    if method2:
+        TP2 = [np.sum(x()[predictions[l]] == 1) for l in range(L)]
+        FP2 = [np.sum(x()[predictions[l]] == -1) for l in range(L)]
 
     for iter_index in range(L):
 
-        # get positive predictive rate for each code
-        # todo: should only compute predictions once! -> but then need to store -> acutally takes longer
-        # = TP/ND
-        predictions = [cf.predict_single_latent(u()[:,l], z()[:,l])==1 for l in l_list]
+        # get positive predictive rate for each code (cythonisation does not help here [boolean types...])
+        if method1:
+            TP = [np.sum(x()[predictions[l] & ~mask] == 1) for l in l_list]
+            FP = [np.sum(x()[predictions[l] & ~mask] == -1) for l in l_list]
+            l_pp_rate = [tp/float(tp+fp) for tp, fp in zip(TP, FP)]
 
-        # l_pp_rate = [np.mean(x()[predictions[l] & ~mask] == 1) for l in range(len(l_list))]
+        if method2:
+            l_pp_rate = [tp/float(tp+fp) for tp, fp in zip(TP2, FP2)]
+            #zip([TP2[i] for i in l_list],[FP2[i] for i in l_list])]
 
-        TP = [np.sum(x()[predictions[l] & ~mask] == 1) for l in range(len(l_list))]
-        FP = [np.sum(x()[predictions[l] & ~mask] == -1) for l in range(len(l_list))]
-        l_pp_rate = [tp/float(tp+fp) for tp, fp in zip(TP, FP)]
+        if False:
+            if np.all(l_pp_rate == l_pp_rate2):
+                print('check')
+            else:
+                Tracer()()
 
         #if np.any(l_pp_rate == < .01):
         #l_pp_rate = [y if not np.isnan(y) else 0.0 for y in l_pp_rate]
@@ -244,34 +257,51 @@ def draw_lbda_maxmachine_wrapper(parm):
         l_max_idx = np.argmax(l_pp_rate)
         l_max = l_list[l_max_idx]
 
+        
+        if method2:
+            # assign corresponding alpha
+            # mind: parm is of (fixed) size L, l_pp_rate gets smaller every iteration
+            if parm.prior_config[0] == 0:
+                parm()[l_max] = ( ( TP2[l_max_idx] ) / float(TP2[l_max_idx] + FP2[l_max_idx] ) )
 
-        # assign corresponding alpha
-        # mind: parm is of (fixed) size L, l_pp_rate gets smaller every iteration
-        ## flat prior on alpha
-        # parm()[l_max] = np.max([0.0,l_pp_rate[l_max_idx]])
-        # parm()[l_max] = TP[l_max_idx]/float(TP[l_max_idx]+FP[l_max_idx])
-        ## beta_prior on alpha
-        
-        parm()[l_max] = ( ( TP[l_max_idx] + parm.beta_prior[0] - 1) /
-                  float(TP[l_max_idx] + FP[l_max_idx] +
-                        parm.beta_prior[0] + parm.beta_prior[1] - 2) )
+            elif parm.prior_config[0] == 1:
+                alpha = parm.prior_config[1][0]
+                beta  = parm.prior_config[1][1]            
+                parm()[l_max] = ( ( TP2[l_max_idx] + alpha - 1) /
+                                  float(TP2[l_max_idx] + FP2[l_max_idx] + alpha + beta - 2) )
 
-        # compute prediction for the current latent dimension
-        # prediction = cf.predict_single_latent(u()[:,l_max], z()[:,l_max])# l_predict(l_max,u,z)
-        
-        
+        if method1:
+            # assign corresponding alpha
+            # mind: parm is of (fixed) size L, l_pp_rate gets smaller every iteration
+            if parm.prior_config[0] == 0:
+                parm()[l_max] = ( ( TP[l_max_idx] ) / float(TP[l_max_idx] + FP[l_max_idx] ) )
+
+            elif parm.prior_config[0] == 1:
+                alpha = parm.prior_config[1][0]
+                beta  = parm.prior_config[1][1]            
+                parm()[l_max] = ( ( TP[l_max_idx] + alpha - 1) /
+                                  float(TP[l_max_idx] + FP[l_max_idx] + alpha + beta - 2) )
+                
         if np.isnan(parm()[l_max]):
             parm()[l_max] = 0
        
-        # mask the predicted values
-        # mask_old = mask
-        mask +=  predictions[l_max_idx]==1
-        # assert np.mean(mask_old) <= np.mean(mask)
-            
         # remove the dimenson from l_list
-        # l_list = [i for i in l_list if i != l_max]
         l_list = [l_list[i] for i in range(len(l_list)) if i != l_max_idx]
 
+        if method2:
+            temp_array = predictions[l_max] & ~mask
+            temp_array1 = temp_array & (x()==1)
+            temp_array2 = temp_array & (x()==-1)            
+            TP2 = [TP2[l + (l >= l_max_idx)] - np.sum(temp_array1 & predictions[l_list[l]])
+                   for l in range(len(l_list))]
+            FP2 = [FP2[l + (l >= l_max_idx)] - np.sum(temp_array2 & predictions[l_list[l]])
+                   for l in range(len(l_list))]
+            # for l in l_list:
+            #     TP2[l] -= np.sum(predictions[l_max] * predictions[l] * ~mask * (x()==1))
+            #     FP2[l] -= np.sum(predictions[l_max] * predictions[l] * ~mask * (x()==-1))
+
+        mask += predictions[l_max]==1
+        
     assert len(l_list) == 0
     
     if np.isnan(parm()[-1]):
@@ -281,14 +311,16 @@ def draw_lbda_maxmachine_wrapper(parm):
         P_remain = np.sum(x()[~mask]==1)
         N_remain = np.sum(x()[~mask]==-1)
 
-        # old version does not work with missingd data (x=0)
-#        p_old = np.max([0, np.min([.5, np.mean(x()[~mask]==1)] )])
-        p_new = ((P_remain + parm.beta_prior_clamped[0] - 1)/
-                 float(P_remain + N_remain + parm.beta_prior_clamped[0] +
-                       parm.beta_prior_clamped[1] - 2))
+        if parm.prior_config[0] == 1:
+            alpha = parm.prior_config[2][0]
+            beta  = parm.prior_config[2][1]        
+            p_new = (P_remain + alpha - 1)/float(P_remain + N_remain + alpha + beta - 2)
+        elif parm.prior_config[0] == 0:
+            p_new = (P_remain)/float(P_remain + N_remain) # get into trouble here if P=N=0
 
         if np.isnan(p_new):
             Tracer()()
+            
         parm()[-1] = p_new
         
 def clean_up_codes(layer, noise_model):
@@ -479,6 +511,64 @@ def draw_u_noparents_onechild_indpn_wrapper(mat):
         mat.sampling_indicator)
     mat.layer.predictive_accuracy_updated = False
 
+
+
+def draw_u_maxmachine(mat):
+    ## order by accuracy of code
+    l_statistic = mat.layer.lbda()[:-1]    
+    
+    ## order by number of predicted data-points
+    # l_statistic = np.sum(mat.layer.z()==1,0)*np.sum(mat.layer.u()==1,0)
+
+    ## order by usage
+    # l_statistic = np.sum(mat.layer.z()==1,0)
+    
+    ## order by no of accurately predicted data points
+    # l_statistic = mat.layer.lbda()[:-1] * np.sum(mat.layer.z()==1,0)*np.sum(mat.layer.u()==1,0)
+    
+    l_order = np.array(np.argsort(-l_statistic), dtype=np.int32)
+    # l_order = np.array(range(len(l_statistic)), dtype=np.int32)
+    # l_order = np.array([1,0,2], dtype=np.int32)
+    # print(l_order)
+    
+    cf.draw_noparents_onechild_maxmachine(
+        mat(), 
+        mat.sibling(),
+        mat.child().transpose(),
+        mat.lbda(),
+        l_order,
+        mat.prior_config)
+
+
+def draw_z_maxmachine(mat):           
+    ## order by accuracy of code
+    l_order = np.array(np.argsort(-mat.layer.lbda()[:-1]), dtype=np.int32)
+    
+    cf.draw_noparents_onechild_maxmachine(
+        mat(),
+        mat.sibling(),
+        mat.child(),
+        mat.lbda(),
+        l_order,
+        mat.prior_config)
+
+        
+def draw_z_oneparent_onechild_maxmachine(mat):
+    l_order = np.array(np.argsort(-mat.layer.lbda()[:-1]), dtype=np.int32)
+    l_order_pa = np.array(np.argsort(-mat.parent_layers[0].lbda()[:-1]), dtype=np.int32)
+    
+    cf.draw_oneparent_onechild_maxmachine(
+        mat(),
+        mat.sibling(),
+        mat.child(),
+        mat.lbda(),
+        l_order,
+        mat.prior_config,
+        mat.parents[1](),
+        mat.parents[0](),
+        mat.parent_layers[0].lbda(),
+        l_order_pa)    
+            
     
 # missing: twoparents_onechild, (arbitraryparents_onechild, arbitaryparents_nochild)
 # unified wrapper aren't working
@@ -511,3 +601,5 @@ def compute_bp(n, q, tau=1):
     exp_bp = [(q*(n-k*tau)) / ((1-q)*(k*tau+1)) for k in range(n+1)]
     bp = [np.log(x) if (x > 0) else -np.infty for x in exp_bp]
     return np.array(bp, dtype=float)    
+
+

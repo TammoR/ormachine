@@ -11,6 +11,7 @@ import wrappers
 try:
     from scipy.special import expit
 except:
+    # makes scipy dependency optional
     def expit(x):
         """
         better implementation in scipy.special, 
@@ -138,6 +139,8 @@ class machine_parameter(trace):
             #     mat.lbdas = [self]
             # else:
             #     mat.lbdas.append(self)
+        self.noise_mode = noise_model
+        self.set_prior()
 
     def print_value(self):
         if self.noise_model == 'coupled':
@@ -147,6 +150,37 @@ class machine_parameter(trace):
         elif self.noise_model == 'maxmachine':
             return '\t'.join([str("%.1f"%round(100*x,2)) for x in self.val])
             #return ', '.join([str(str.format('{0:3f}',x)) for x in self.val])
+
+            
+    def set_prior(self, prior_parms=None, clamped_unit_prior_parms=None):
+        """
+        In analaogy to the set_prior method of machine_matrix,
+        initialise all the necessary prior properties for posterior sampling.
+        Only option here is a beta prior.
+        Creates a property for the machine_parameter called .prior_config:
+        list of [prior_type, [alpha, beta], [alpha_c, beta_c]] = [int, [float, float], [float, float]] 
+        with
+        prior_type = 0 -> Flat prior
+        prior_type = 1 -> beta prior with parameters [alpha, beta] and [alpha_c, beta_c]
+            on the clamped unit.
+        """
+
+        # beta priors on the noise parameters are only available in maxmachine (todo)
+        if self.noise_model != 'maxmachine':
+            return 0
+
+        if (((prior_parms == [1,1]) or (prior_parms is None)) and
+           ((clamped_unit_prior_parms == [1,1]) or (clamped_unit_prior_parms is None))):
+            prior_type = 0
+            self.prior_config = [0, None, None]
+        else:
+            prior_type = 1
+            if prior_parms is None:
+                prior_parms = [1,1]
+            if clamped_unit_prior_parms is None:
+                clamped_unit_prior_parms = [1,1]
+            
+            self.prior_config = [1, prior_parms, clamped_unit_prior_parms]
 
             
     def correct_role_order(self):
@@ -169,15 +203,14 @@ class machine_parameter(trace):
         """
         Can interface other functions here easily.
         """
-        
         if 'coupled' in self.layer.noise_model:
             self.sampling_fct = wrappers.draw_lbda_wrapper    
         elif 'independent' in self.layer.noise_model:
             self.sampling_fct = wrappers.draw_lbda_indpndt_wrapper
         elif 'maxmachine' in self.noise_model:
             self.sampling_fct = wrappers.draw_lbda_maxmachine_wrapper
-            # print('Can not infer appropriate samping function for lbda/mu')
-            # raise StandardError('Can not infer appropriate samping function for lbda/mu') 
+        else:
+            raise StandardError('Can not infer appropriate samping function for lbda/mu') 
 
     def update(self):
         """
@@ -246,9 +279,6 @@ class machine_matrix(trace):
         self.sibling = sibling
         self.lbda = lbda
         
-        # assign prior
-        self.set_prior(bernoulli_prior, density_conditions)
-
         # ascertain that we have enough information to initiliase the matrix
         assert (val is not None) or (shape is not None and p_init is not None)
         
@@ -276,6 +306,17 @@ class machine_matrix(trace):
             
         # sampling indicator is boolean matrix of the same size, type=np.int8
         self.set_sampling_indicator(sampling_indicator)
+
+        # initiliase some parameters to None
+        # for type checking once they're used.
+        self.bernoulli_prior = None
+        self.row_binomial_prior = None
+        self.col_binomial_prior = None
+        self.row_densities = None
+        self.col_densities = None
+        self.set_prior()
+        if density_conditions == None:
+            self.density_conditions = None
         
     @staticmethod
     def layer():
@@ -296,12 +337,90 @@ class machine_matrix(trace):
         if sampling_indicator is True:
             self.sampling_indicator = np.ones(self().shape, dtype=np.int8)
         elif sampling_indicator is False:
-            self.sampling_indicator = np.zeros(self().shape, dtype=np.int8)
+            self.sampling_indicator = False
         elif type(sampling_indicator) is np.ndarray:
             assert sampling_indicator.shape == self().shape
             self.sampling_indicator = np.array(sampling_indicator, dtype=np.int8)
 
-    def set_prior(self, bernoulli_prior=None, density_conditions=None):
+    def set_prior(self, prior_type=None, prior_parms=None, axis=None):
+        """
+        prior_type (str): 'bernoulli', 'binomial', 'beta-binomial'
+        prior_parms (list of mixed types):
+            bernoulli: [p (float)]
+            binomial: [q (float), N (int)]
+            beta-bernoulli: [a (float) ,b (float), N (int)]
+        Setting N different from the acutal size of the corresponding
+        dimension enforces sparsit.
+
+        the property .prior_code is
+        0: no prior
+        1: Bernoulli prior
+        2: Binomial prior across columns
+        3: Binomial prior across rows
+        4: Binomial prior across rows and columns (not very reasonable)
+
+        Every machine_matrix exposes: .prior_type, .prior_parms, 
+        and then: .row_densities, .col_densities, .binomial_prior_col, .binomial_prior_row, .bernoulli_prior
+        """
+        if prior_type is None:
+            self.prior_code = 0
+        
+        if (prior_type is not None) and (prior_type not in ['bernoulli', 'binomial', 'beta-binomial']):
+            print('No proper prior specified. Choices are bernoulli, binomial, beta binomial. Defaulting to flat priors')
+            set_prior()
+
+        if prior_type is 'bernoulli':
+            self.prior_code = 1
+            if type(prior_parms) is list:
+                assert len(prior_parms) == 1
+                bernoulli_prior = prior_parms[0]
+            else:
+                assert type(prior_parms) is float
+            self.bernoulli_prior = prior_parms
+
+        if prior_type is 'binomial':
+            # set number of draws to axis length, if not provided.
+            if type(prior_parms) is list:
+                if len(prior_parms) == 1:
+                    prior_parms.append(self().shape[1-axis])
+            elif type(prior_parms) is float:
+                prior_parms = [prior_parms, self().shape[1-axis]]
+            if axis is None:
+                print('No axis for binomial prior provided. Defaulting to 0')
+                axis = 0
+
+            # set counts, summing the ones across rows/columns
+            if axis == 0: # prior on each row, sum across columns
+                if self.prior_code == 3:
+                    self.prior_code = 4
+                else:
+                    self.prior_code = 2
+                    
+                self.row_densities = np.array(np.sum(self()==1, 1), dtype=np.int32)
+                assert len(self.row_densities) == self().shape[0]
+                # need to add +1 to also count all zero state.
+                self.row_binomial_prior = compute_bp(prior_parms[0], prior_parms[1]+1, self().shape[1-axis]+1)
+                    
+            elif axis == 1:
+                if self.prior_code == 2:
+                    self.prior_code = 4
+                else:
+                    self.prior_code = 3
+                self.col_densities = np.array(np.sum(self()==1, 0), dtype=np.int32)
+                assert len(self.col_densities) == self().shape[1]
+                self.col_binomial_prior = compute_bp(prior_parms[0], prior_parms[1]+1, self().shape[1-axis]+1)
+
+            elif prior_type is 'beta-binomial':
+                print('beta-binomial not yet implemented.') # works just like above
+
+        self.prior_config = [self.prior_code,
+                             self.bernoulli_prior,
+                             self.row_binomial_prior,
+                             self.col_binomial_prior,
+                             self.row_densities,
+                             self.col_densities]
+                
+    def set_prior_old(self, bernoulli_prior=None, density_conditions=None):
         """
         density_conditions is the max no of ones in each dimension
         [min_row, min_col, max_row, max_col].
@@ -456,13 +575,24 @@ class machine_matrix(trace):
                 # ... and no parent
                 if not self.parents:
                     if self.role == 'observations':
-                        self.sampling_fct = wrappers.draw_z_noparents_onechild_wrapper
+                        if self.layer.noise_model == 'maxmachine':
+                            self.sampling_fct = wrappers.draw_z_maxmachine
+                        elif self.layer.noise_model == 'coupled':
+                            self.sampling_fct = wrappers.draw_z_noparents_onechild_wrapper
                     elif self.role == 'features':
-                        self.sampling_fct = wrappers.draw_u_noparents_onechild_wrapper                    
+                        if self.layer.noise_model == 'maxmachine':
+                            self.sampling_fct = wrappers.draw_u_maxmachine
+                        elif self.layer.noise_model == 'coupled':
+                            self.sampling_fct = wrappers.draw_u_noparents_onechild_wrapper       
+                            
+
                 # ... and one parent 
                 elif len(self.parent_layers) == 1:
                     if self.role == 'observations':
-                        self.sampling_fct = wrappers.draw_z_oneparent_onechild_wrapper
+                        if self.layer.noise_model == 'maxmachine':
+                            self.sampling_fct = wrappers.draw_z_oneparent_onechild_maxmachine
+                        elif self.layer.noise_model == 'coupled':
+                            self.sampling_fct = wrappers.draw_z_oneparent_onechild_wrapper
                     elif self.role == 'features':
                         self.sampling_fct = wrappers.draw_u_oneparent_onechild_wrapper       
                 # ... and two parents (not implemented, throwing error)
@@ -734,6 +864,8 @@ class machine():
 
         layer = machine_layer(z, u, lbda, size, child, noise_model)
 
+        layer.auto_clean_up = False
+
         self.layers.append(layer)
         
         return layer
@@ -862,7 +994,7 @@ class machine():
         # create list of matrices to draw samples from
         if mats == 'all':
             mats = self.members
-        mats = [mat for mat in mats if not np.all(mat.sampling_indicator == 0)]
+        mats = [mat for mat in mats if not mat.sampling_indicator is False]
 
         # sort from large to small. this is crucial for convergence.
         # mats = sorted(mats, key=lambda x: x.val.shape[0], reverse=True)
@@ -929,10 +1061,15 @@ class machine():
         # some sanity checks
         for layer in self.layers:
             if False and layer.noise_model == 'maxmachine':
-                assert np.all(layer.u.j == np.array(np.sum(layer.u()==1, 1), dtype=np.int32))
-                assert np.all(layer.z.j == np.array(np.sum(layer.z()==1, 1), dtype=np.int32))
-                assert np.all(layer.u.k == np.array(np.sum(layer.u()==1, 0), dtype=np.int32))
-                assert np.all(layer.z.k == np.array(np.sum(layer.z()==1, 0), dtype=np.int32))
+                if layer1.u.row_densities is not None:
+                    assert np.all(layer1.u.row_densities == np.sum(layer1.u()==1,1))
+                if layer1.u.col_densities is not None:
+                    assert np.all(layer1.u.row_densities == np.sum(layer1.u()==1,0))    
+                if layer1.z.row_densities is not None:
+                    assert np.all(layer1.z.row_densities == np.sum(layer1.z()==1,1))
+                if layer1.z.col_densities is not None:
+                    assert np.all(layer1.z.row_densities == np.sum(layer1.z()==1,0))
+                    
         # set all parameters to MAP estimate
         # [mat.set_to_map() for mat in mats]
         # [lbda.update() for lbda in lbdas]
@@ -1009,3 +1146,23 @@ def maxmachine_forward_pass(u, z, alpha):
     x[x==0] = alpha[-1]
 
     return x
+
+
+def compute_bp(q, n, N, tau=1):
+    """
+    compute coefficients for binomial prior
+    n = number of draws
+    q = success probability per draw
+    N = size of output (output gets 0-padded)
+    """
+    
+    exp_bp = [(q*(n-k*tau)) / ((1-q)*(k*tau+1)) for k in range(n)]
+    
+    bp = [np.log(x) if (x > 0) else -np.infty for x in exp_bp]
+
+    if N != n:
+        bp_new = [-np.infty for i in range(N)]
+        bp_new[:n-1] = bp
+        bp = bp_new
+        
+    return np.array(bp, dtype=float)

@@ -126,11 +126,12 @@ def draw_noparents_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
                                        data_type_t[:,:] child, # N x Lc; x_nd
                                        double[:] lbda,
                                        int[:] idx_sorted,
-                                       float prior,
-                                       double[:] bbp_k,
-                                       double[:] bbp_j,
-                                       int[:] k, # vector of counts of length D
-                                       int[:] j): # vector of counts of length N):
+                                       list prior_config): # code, bernoulli-prior, row-binom, col-binom, row-density, col-density
+                                       # float prior,
+                                       # double[:] bbp_k,
+                                       # double[:] bbp_j,
+                                       # int[:] k, # vector of counts of length D
+                                       # int[:] j): # vector of counts of length N):
     """
     TODO:  sampling indicator, versions with parents
     """
@@ -139,6 +140,19 @@ def draw_noparents_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
     cdef int n, l_idx, d, N = x.shape[0], L = x.shape[1], D = sibling.shape[0]
     cdef bint break_accumulator
     cdef float accumulator
+    cdef float prior
+    cdef np.ndarray[ndim=1, dtype=np.float64_t] row_binom = prior_config[2]
+    cdef np.ndarray[ndim=1, dtype=np.float64_t] col_binom = prior_config[3]
+    cdef np.ndarray[ndim=1, dtype=np.int32_t] row_densities = prior_config[4]
+    cdef np.ndarray[ndim=1, dtype=np.int32_t] col_densities = prior_config[5]
+
+
+    cdef int prior_code = prior_config[0]
+    if prior_code == 0:
+        prior = 0
+    elif prior_code == 1:
+        prior = prior_config[1]
+        prior = scipy.special.cython_special.logit(prior)
 
     # iterate over codes in order of decreasing lbda
     # binomial prior over N breaks paralellism
@@ -148,34 +162,36 @@ def draw_noparents_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
             
             accumulator = child_node_contribution_to_maxmachine(
                 x, sibling, child, lbda, l_idx, idx_sorted, n, D, L)
-                                                           
-            prior = bbp_k[k[idx_sorted[l_idx]]] + bbp_j[j[n]]
-            
-            # prior_new = bbp_prior_contribution(bbp_k, k[idx_sorted[l_idx]],
-            #                                bbp_j, j[n])
-            # assert prior_new == prior_old
+
+            if prior_code == 2:
+                prior = row_binom[row_densities[n]]
+            elif prior_code == 3:
+                prior = col_binom[col_densities[idx_sorted[l_idx]]]
+            elif prior_code == 4:
+                prior = row_binom[row_densities[n]] + col_binom[col_densities[idx_sorted[l_idx]]]
+                
             
             x_old = x[n,idx_sorted[l_idx]]
-
             x[n, idx_sorted[l_idx]]= swap_metropolised_gibbs_unified(sigmoid(accumulator + prior),
                                                                      x[n, idx_sorted[l_idx]])  ### + prio
             #x[n, idx_sorted[l_idx]] = swap_gibbs(sigmoid(accumulator + prior)) # + prior
 
             # update row/column count of ones for prior
             if x[n, idx_sorted[l_idx]] != x_old:
-                 k[idx_sorted[l_idx]] += x[n,idx_sorted[l_idx]]
-                 j[n] += x[n,idx_sorted[l_idx]]
-
+                if prior_code == 2:
+                    row_densities[n] += x[n,idx_sorted[l_idx]]
+                elif prior_code == 3:
+                    col_densities[idx_sorted[l_idx]] += x[n,idx_sorted[l_idx]]
+                elif prior_code == 4:
+                    row_densities[n] += x[n,idx_sorted[l_idx]]
+                    col_densities[idx_sorted[l_idx]] += x[n,idx_sorted[l_idx]]
                  
 def draw_oneparent_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
                                        data_type_t[:,:] sibling, # D x Lc; u_dl
                                        data_type_t[:,:] child, # N x Lc; x_nd
                                        double[:] lbda,
                                        int[:] idx_sorted,
-                                       double[:] bbp_k,
-                                       double[:] bbp_j,
-                                       int[:] k, # vector of counts of length D
-                                       int[:] j, # vector of counts of length N):
+                                       list prior_config,
                                        data_type_t[:,:] u_pa,
                                        data_type_t[:,:] z_pa,
                                        double[:] lbda_pa,
@@ -188,7 +204,19 @@ def draw_oneparent_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
     cdef int n, l_idx, d, N = x.shape[0], L = x.shape[1], D = sibling.shape[0]
     cdef bint break_accumulator
     cdef float accumulator, accumulator_new
+    cdef float prior
+    cdef np.ndarray[ndim=1, dtype=np.float64_t] row_binom = prior_config[2]
+    cdef np.ndarray[ndim=1, dtype=np.float64_t] col_binom = prior_config[3]
+    cdef np.ndarray[ndim=1, dtype=np.int32_t] row_densities = prior_config[4]
+    cdef np.ndarray[ndim=1, dtype=np.int32_t] col_densities = prior_config[5]    
 
+    cdef int prior_code = prior_config[0]
+    if prior_code == 0:
+        prior = 0
+    elif prior_code == 1:
+        prior = prior_config[1]
+        prior = scipy.special.cython_special.logit(prior)
+    
     # iterate over codes in order of decreasing lbda
     # binomial prior over N breaks paralellism
     for n in range(N): #, schedule=dynamic, nogil=True):
@@ -200,9 +228,14 @@ def draw_oneparent_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
 
             accumulator_par = parent_contribution_to_maxmachine(
                 u_pa, z_pa, lbda_pa, idx_sorted_pa, n, idx_sorted[l_idx])
-                                                           
-            prior = bbp_k[k[idx_sorted[l_idx]]] + bbp_j[j[n]]
 
+            if prior_code == 2:
+                prior = row_binom[row_densities[n]]
+            elif prior_code == 3:
+                prior = col_binom[col_densities[idx_sorted[l_idx]]]
+            elif prior_code == 4:
+                prior = row_binom[row_densities[n]] + col_binom[col_densities[idx_sorted[l_idx]]]
+                
             x_old = x[n,idx_sorted[l_idx]]
 
             x[n, idx_sorted[l_idx]] = swap_metropolised_gibbs_unified(
@@ -212,11 +245,15 @@ def draw_oneparent_onechild_maxmachine(data_type_t[:,:] x,  # N x D; z_nl
 
             # update row/column count of ones for prior
             if x[n, idx_sorted[l_idx]] != x_old:
-                 k[idx_sorted[l_idx]] += x[n,idx_sorted[l_idx]]
-                 j[n] += x[n,idx_sorted[l_idx]]
-                 
-            
+                if prior_code == 2:
+                    row_densities[n] += x[n,idx_sorted[l_idx]]
+                elif prior_code == 3:
+                    col_densities[idx_sorted[l_idx]] += x[n,idx_sorted[l_idx]]
+                elif prior_code == 4:
+                    row_densities[n] += x[n,idx_sorted[l_idx]]
+                    col_densities[idx_sorted[l_idx]] += x[n,idx_sorted[l_idx]]            
 
+                    
 def draw_noparents_onechild_bbprior(data_type_t[:,:] x,  # N x D
                                     data_type_t[:,:] sibling, # D x Lc
                                     data_type_t[:,:] child, # N x Lc
