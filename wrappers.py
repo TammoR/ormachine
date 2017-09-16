@@ -1,106 +1,7 @@
 import cython_functions as cf
 import numpy as np
 from IPython.core.debugger import Tracer
-    
-def draw_z_oneparent_nochild_maxdens_wrapper(mat):
-    
-    cf.draw_oneparent_nochild_maxdens(
-        mat(), # NxD
-        mat.parents[0](), # parents obs: N x Lp
-        mat.parents[1](), # parents feat: D x Lp
-        mat.parents[0].lbda(), # parent lbdas: 
-        mat.logit_bernoulli_prior,
-        mat.density_conditions,
-        mat.sampling_indicator)
-    
-def draw_u_oneparent_nochild_maxdens_wrapper(mat):
-    
-    cf.draw_oneparent_nochild_maxdens(
-        mat(), # NxD
-        mat.parents[1](), # parents obs: N x Lp
-        mat.parents[0](), # parents feat: D x Lp
-        mat.parents[0].lbda(), # parent lbdas: K (KxL for MaxM)
-        mat.logit_bernoulli_prior,
-        mat.density_conditions,
-        mat.sampling_indicator)    
-        
-def draw_z_twoparents_nochild_maxdens_wrapper(mat):
-
-    cf.draw_twoparents_nochild_maxdens(
-        mat(), # NxD
-        mat.parent_layers[0].z(), # parents obs: N x Lp
-        mat.parent_layers[0].u(), # parents feat: D x Lp
-        mat.parent_layers[0].u.lbda(), # parent lbda
-        mat.parent_layers[1].z(), # parents obs: N x Lp
-        mat.parent_layers[1].u(), # parents feat: D x Lp
-        mat.parent_layers[1].u.lbda(), # parent lbda
-        mat.logit_bernoulli_prior,
-        mat.density_conditions,
-        mat.sampling_indicator)
-    
-def draw_u_twoparents_nochild_maxdens_wrapper(mat):
-
-    cf.draw_twoparents_nochild_maxdens(
-        mat(), # NxD
-        mat.parent_layers[0].u(), # parents obs: N x Lp
-        mat.parent_layers[0].z(), # parents feat: D x Lp
-        mat.parent_layers[0].u.lbda(), # parent lbda
-        mat.parent_layers[1].u(), # parents obs: N x Lp
-        mat.parent_layers[1].z(), # parents feat: D x Lp
-        mat.parent_layers[1].u.lbda(), # parent lbda
-        mat.logit_bernoulli_prior,
-        mat.density_conditions,
-        mat.sampling_indicator)        
-
-def draw_z_noparents_onechild_maxdens_wrapper(mat):
-
-    cf.draw_noparents_onechild_maxdens(
-        mat(),  # NxD
-        mat.sibling(),  # sibling u: D x Lc
-        mat.child(),  # child observation: N x Lc
-        mat.lbda(),  # own parameter: double
-        mat.logit_bernoulli_prior,
-        mat.density_conditions,
-        mat.sampling_indicator)
-    
-def draw_u_noparents_onechild_maxdens_wrapper(mat):
-    
-    cf.draw_noparents_onechild_maxdens(
-        mat(), # NxD
-        mat.sibling(), # sibling u: D x Lc
-        mat.child().transpose(), # child observation: N x Lc
-        mat.lbda(), # own parameter: double
-        mat.logit_bernoulli_prior,
-        mat.density_conditions,
-        mat.sampling_indicator)
-
-def draw_z_oneparent_onechild_maxdens_wrapper(mat):
-
-    cf.draw_oneparent_onechild_maxdens(
-        mat(), # N x D
-        mat.parents[0](), # parent obs: N x Lp
-        mat.parents[1](), # parent features, D x Lp
-        mat.parents[1].lbda(), # parent lbda
-        mat.sibling(), # sibling u: D x Lc
-        mat.child(), # child observation: N x Lc
-        mat.lbdas(), # own parameter: double
-        mat.logit_bernoulli_prior,
-        mat.density_conditions,
-        mat.sampling_indicator)
-
-def draw_u_oneparent_onechild_maxdens_wrapper(mat):
-
-    cf.draw_oneparent_onechild_maxdens(
-        mat(), # NxD
-        mat.parents[1](), # parent obs: N x Lp
-        mat.parents[0](), # parent features, D x Lp
-        mat.parents[1].lbda(), # parent lbda
-        mat.sibling(), # sibling u: D x Lc
-        mat.child().transpose(), # child observation: N x Lc
-        mat.lbdas(), # own parameter: double
-        mat.logit_bernoulli_prior,
-        mat.density_conditions,
-        mat.sampling_indicator)
+import warnings
 
 
 def draw_z_oneparent_nochild_wrapper(mat):
@@ -109,8 +10,8 @@ def draw_z_oneparent_nochild_wrapper(mat):
         mat(), # NxD
         mat.parents[0](), # parents obs: N x Lp
         mat.parents[1](), # parents feat: D x Lp
-        mat.parents[0].lbda(), # parent lbdas: 
-        mat.logit_bernoulli_prior,
+        mat.parents[0].lbda(), # parent lbdas:
+        mat.prior_config,
         mat.sampling_indicator)
     
 def draw_u_oneparent_nochild_wrapper(mat):
@@ -120,7 +21,7 @@ def draw_u_oneparent_nochild_wrapper(mat):
         mat.parents[1](), # parents obs: N x Lp
         mat.parents[0](), # parents feat: D x Lp
         mat.parents[0].lbda(), # parent lbdas: K (KxL for MaxM)
-        mat.logit_bernoulli_prior,
+        mat.prior_config,        
         mat.sampling_indicator)    
         
 def draw_z_twoparents_nochild_wrapper(mat):
@@ -133,7 +34,7 @@ def draw_z_twoparents_nochild_wrapper(mat):
         mat.parent_layers[1].z(), # parents obs: N x Lp
         mat.parent_layers[1].u(), # parents feat: D x Lp
         mat.parent_layers[1].u.lbda(), # parent lbda
-        mat.logit_bernoulli_prior,
+        mat.prior_config,        
         mat.sampling_indicator)
     
 def draw_u_twoparents_nochild_wrapper(mat):
@@ -146,7 +47,7 @@ def draw_u_twoparents_nochild_wrapper(mat):
         mat.parent_layers[1].u(), # parents obs: N x Lp
         mat.parent_layers[1].z(), # parents feat: D x Lp
         mat.parent_layers[1].u.lbda(), # parent lbda
-        mat.logit_bernoulli_prior,
+        mat.prior_config,        
         mat.sampling_indicator)        
 
 def draw_z_noparents_onechild_wrapper(mat):
@@ -156,7 +57,7 @@ def draw_z_noparents_onechild_wrapper(mat):
         mat.sibling(),  # sibling u: D x Lc
         mat.child(),  # child observation: N x Lc
         mat.lbda(),  # own parameter: double
-        mat.logit_bernoulli_prior,
+        mat.prior_config,
         mat.sampling_indicator)
     
 def draw_u_noparents_onechild_wrapper(mat):
@@ -179,7 +80,7 @@ def draw_u_noparents_onechild_wrapper(mat):
         mat.sibling(), # sibling u: D x Lc
         mat.child().transpose(), # child observation: N x Lc
         mat.lbda(), # own parameter: double
-        mat.logit_bernoulli_prior,
+        mat.prior_config,
         mat.sampling_indicator)
 
 def draw_z_oneparent_onechild_wrapper(mat):
@@ -187,11 +88,11 @@ def draw_z_oneparent_onechild_wrapper(mat):
         mat(), # N x D
         mat.parents[0](), # parent obs: N x Lp
         mat.parents[1](), # parent features, D x Lp
-        mat.parents[1].lbdas(), # parent lbda
+        mat.parents[1].lbda(), # parent lbda
         mat.sibling(), # sibling u: D x Lc
         mat.child(), # child observation: N x Lc
         mat.lbda(), # own parameter: double
-        mat.logit_bernoulli_prior,
+        mat.prior_config,
         mat.sampling_indicator)
 
 def draw_u_oneparent_onechild_wrapper(mat):
@@ -204,15 +105,15 @@ def draw_u_oneparent_onechild_wrapper(mat):
         mat.sibling(), # sibling u: D x Lc
         mat.child().transpose(), # child observation: N x Lc
         mat.lbda(), # own parameter: double
-        mat.logit_bernoulli_prior,
+        mat.prior_config,
         mat.sampling_indicator)
 
 
 def draw_lbda_maxmachine_wrapper(parm):
     """
-    Set each lambda to its maxmachine mle. TODO: needs optimisation/cythonisation
+    Set each lambda to its maxmachine mle. 
+    This should be cythonised, but contains nasty things like argsort.
     """
-    assert parm.layer.size == len(parm())-1
 
     z=parm.attached_matrices[0]
     u=parm.attached_matrices[1]
@@ -224,104 +125,73 @@ def draw_lbda_maxmachine_wrapper(parm):
     mask = np.zeros([N,D], dtype=bool)
     l_list = range(L)
     
-    method1 = False
-    method2 = ~method1
-
     predictions = [cf.predict_single_latent(u()[:,l], z()[:,l])==1 for l in l_list]
-    if method2:
-        TP2 = [np.sum(x()[predictions[l]] == 1) for l in range(L)]
-        FP2 = [np.sum(x()[predictions[l]] == -1) for l in range(L)]
+
+    TP2 = [np.count_nonzero(x()[predictions[l]] == 1) for l in range(L)]
+    FP2 = [np.count_nonzero(x()[predictions[l]] == -1) for l in range(L)]
 
     for iter_index in range(L):
 
-        # get positive predictive rate for each code (cythonisation does not help here [boolean types...])
-        if method1:
-            TP = [np.sum(x()[predictions[l] & ~mask] == 1) for l in l_list]
-            FP = [np.sum(x()[predictions[l] & ~mask] == -1) for l in l_list]
-            l_pp_rate = [tp/float(tp+fp) for tp, fp in zip(TP, FP)]
-
-        if method2:
-            l_pp_rate = [tp/float(tp+fp) for tp, fp in zip(TP2, FP2)]
-            #zip([TP2[i] for i in l_list],[FP2[i] for i in l_list])]
-
-        if False:
-            if np.all(l_pp_rate == l_pp_rate2):
-                print('check')
-            else:
-                Tracer()()
-
-        #if np.any(l_pp_rate == < .01):
-        #l_pp_rate = [y if not np.isnan(y) else 0.0 for y in l_pp_rate]
+        # use Laplace rule of succession here, to avoid numerical issues
+        l_pp_rate = [(tp+1)/float(tp+fp+2) for tp, fp in zip(TP2, FP2)]        
 
         # find l with max predictive power
         l_max_idx = np.argmax(l_pp_rate)
         l_max = l_list[l_max_idx]
 
-        
-        if method2:
-            # assign corresponding alpha
-            # mind: parm is of (fixed) size L, l_pp_rate gets smaller every iteration
-            if parm.prior_config[0] == 0:
-                parm()[l_max] = ( ( TP2[l_max_idx] ) / float(TP2[l_max_idx] + FP2[l_max_idx] ) )
+        # assign corresponding alpha
+        # mind: parm is of (fixed) size L, l_pp_rate gets smaller every iteration
+        if parm.prior_config[0] == 0:
+            # again, using Laplace rule of succession
+            parm()[l_max] = ( ( TP2[l_max_idx] + 1 ) / float(TP2[l_max_idx] + FP2[l_max_idx] + 2 ) )
 
-            elif parm.prior_config[0] == 1:
-                alpha = parm.prior_config[1][0]
-                beta  = parm.prior_config[1][1]            
-                parm()[l_max] = ( ( TP2[l_max_idx] + alpha - 1) /
-                                  float(TP2[l_max_idx] + FP2[l_max_idx] + alpha + beta - 2) )
+        elif parm.prior_config[0] == 1:
+            alpha = parm.prior_config[1][0]
+            beta  = parm.prior_config[1][1]
+            parm()[l_max] = ( ( TP2[l_max_idx] + alpha - 1) /
+                              float(TP2[l_max_idx] + FP2[l_max_idx] + alpha + beta - 2) )
 
-        if method1:
-            # assign corresponding alpha
-            # mind: parm is of (fixed) size L, l_pp_rate gets smaller every iteration
-            if parm.prior_config[0] == 0:
-                parm()[l_max] = ( ( TP[l_max_idx] ) / float(TP[l_max_idx] + FP[l_max_idx] ) )
-
-            elif parm.prior_config[0] == 1:
-                alpha = parm.prior_config[1][0]
-                beta  = parm.prior_config[1][1]            
-                parm()[l_max] = ( ( TP[l_max_idx] + alpha - 1) /
-                                  float(TP[l_max_idx] + FP[l_max_idx] + alpha + beta - 2) )
-                
-        if np.isnan(parm()[l_max]):
-            parm()[l_max] = 0
-       
         # remove the dimenson from l_list
         l_list = [l_list[i] for i in range(len(l_list)) if i != l_max_idx]
 
-        if method2:
-            temp_array = predictions[l_max] & ~mask
-            temp_array1 = temp_array & (x()==1)
-            temp_array2 = temp_array & (x()==-1)            
-            TP2 = [TP2[l + (l >= l_max_idx)] - np.sum(temp_array1 & predictions[l_list[l]])
-                   for l in range(len(l_list))]
-            FP2 = [FP2[l + (l >= l_max_idx)] - np.sum(temp_array2 & predictions[l_list[l]])
-                   for l in range(len(l_list))]
-            # for l in l_list:
-            #     TP2[l] -= np.sum(predictions[l_max] * predictions[l] * ~mask * (x()==1))
-            #     FP2[l] -= np.sum(predictions[l_max] * predictions[l] * ~mask * (x()==-1))
+        # the following large binary arrays need to be computed L times -> precompute here
+        temp_array = predictions[l_max] & ~mask
+        temp_array1 = temp_array & (x()==1)
+        temp_array2 = temp_array & (x()==-1)
+        
+        TP2 = [TP2[l + (l >= l_max_idx)] - np.count_nonzero(temp_array1 & predictions[l_list[l]])
+               for l in range(len(l_list))]
+        FP2 = [FP2[l + (l >= l_max_idx)] - np.count_nonzero(temp_array2 & predictions[l_list[l]])
+               for l in range(len(l_list))]
 
         mask += predictions[l_max]==1
         
     assert len(l_list) == 0
     
-    if np.isnan(parm()[-1]):
-        parm()[-1] = 0.0
+    # if np.isnan(parm()[-1]):
+    #     Tracer()()
+    #     warnings.warn('Noise parameter was nan, setting to 0.')         
+    #     parm()[-1] = 0.0
+
+    P_remain = np.count_nonzero(x()[~mask]==1)
+    N_remain = np.count_nonzero(x()[~mask]==-1)
+
+    if parm.prior_config[0] == 1:
+        alpha = parm.prior_config[2][0]
+        beta  = parm.prior_config[2][1]        
+        p_new = (P_remain + alpha - 1)/float(P_remain + N_remain + alpha + beta - 2)
+    elif parm.prior_config[0] == 0:
+        p_new = (P_remain + 1)/float(P_remain + N_remain + 2) # get into trouble here if P=N=0
+
+    if np.isnan(p_new):
         Tracer()()
-    else:
-        P_remain = np.sum(x()[~mask]==1)
-        N_remain = np.sum(x()[~mask]==-1)
+        warnings.warn('Noise parameter was nan, setting to 0.')             
+        parm()[-1] = p_new            
 
-        if parm.prior_config[0] == 1:
-            alpha = parm.prior_config[2][0]
-            beta  = parm.prior_config[2][1]        
-            p_new = (P_remain + alpha - 1)/float(P_remain + N_remain + alpha + beta - 2)
-        elif parm.prior_config[0] == 0:
-            p_new = (P_remain)/float(P_remain + N_remain) # get into trouble here if P=N=0
+    parm()[-1] = p_new
 
-        if np.isnan(p_new):
-            Tracer()()
-            
-        parm()[-1] = p_new
+    parm.layer.precompute_lbda_ratios()
+    
         
 def clean_up_codes(layer, noise_model):
     
@@ -329,43 +199,28 @@ def clean_up_codes(layer, noise_model):
         u = layer.u; z = layer.z; lbda = layer.lbda
         u.val = np.delete(u.val, l_prime, axis=1)
         z.val = np.delete(z.val, l_prime, axis=1)
-        lbda.val = np.delete(u.layer.lbda(), l_prime)
         layer.size -= 1
+        if layer.noise_model == 'maxmachine':
+            lbda.val = np.delete(u.layer.lbda(), l_prime)
+            layer.precompute_lbda_ratios()
+        z.update_prior_config()
+        u.update_prior_config()
         for iter_mat in [u,z]:
             if len(iter_mat.parents) != 0:
                 for parent in iter_mat.parents:
                     if parent.role == 'features':
                         parent.val = np.delete(parent.val, l_prime, axis=0)
-                        if noise_model is 'maxmachine':
-                            # binomial prior per code
-                            parent.bbp_k = compute_bp(u().shape[0], .1, 10)
-                            parent.k = np.array(np.sum(u()==1, 0), dtype=np.int32)    
+                        parent.update_prior_config()
 
-                            # binomial prior per attribute
-                            parent.bbp_j = compute_bp(u().shape[1], .1, 2)
-                            parent.j = np.array(np.sum(u()==1, 1), dtype=np.int32)
-            
-        if noise_model is 'maxmachine': 
-            #z.k[l_prime] = 0
-            #u.k[l_prime] = 0
-
-            # binomial prior per code
-            u.bbp_k = compute_bp(u().shape[0], .1, 10)
-            u.k = np.array(np.sum(u()==1, 0), dtype=np.int32)    
-
-            # binomial prior per attribute
-            u.bbp_j = compute_bp(u().shape[1], .1, 2)
-            u.j = np.array(np.sum(u()==1, 1), dtype=np.int32)
-
-            # dummy prios on z
-            z.bbp_k = np.zeros(z().shape[0]+1)
-            z.k = np.array(np.sum(z()==1, 0), dtype=np.int32)    
-
-            # dummy prios on z per attribute
-            z.bbp_j = np.zeros(z().shape[1]+1)
-            z.j = np.array(np.sum(z()==1, 1), dtype=np.int32)
-
-
+    # remove inactive codes
+    l = 0
+    while l < layer.size:
+        if np.all(layer.z()[:,l] == -1) or np.all(layer.u()[:,l] == -1):
+            # print('remove zero dimension')
+            reduction_applied = True
+            remove_dimension(l, layer)
+        l += 1
+                        
     # clean duplicates
     l = 0
     reduction_applied = False
@@ -381,13 +236,14 @@ def clean_up_codes(layer, noise_model):
         l += 1
 
     # clean by alpha threshold
-    l = 0
-    while l < layer.size:
-        if layer.lbda()[l] < 1e-3:
-            # print('remove useless dimension')
-            reduction_applied = True
-            remove_dimension(l, layer)
-        l += 1
+    if layer.noise_model == 'maxmachine':
+        l = 0
+        while l < layer.size:
+            if layer.lbda()[l] < 1e-3:
+                # print('remove useless dimension')
+                reduction_applied = True
+                remove_dimension(l, layer)
+            l += 1
 
     return reduction_applied
         
@@ -410,11 +266,11 @@ def reset_codes(z, u, noise_model):
                         #z.k[l_prime] = 0
                         #u.k[l_prime] = 0
                         
-                        u.j = np.array(np.sum(u()==1, 1), dtype=np.int32)
-                        z.j = np.array(np.sum(z()==1, 1), dtype=np.int32)
+                        u.j = np.array(np.count_nonzero(u()==1, 1), dtype=np.int32)
+                        z.j = np.array(np.count_nonzero(z()==1, 1), dtype=np.int32)
                         
-                        u.k[l_prime] = 0 # = np.array(np.sum(u()==1, 0), dtype=np.int32)
-                        z.k[l_prime] = 0 # np.array(np.sum(z()==1, 0), dtype=np.int32)
+                        u.k[l_prime] = 0 # = np.array(np.count_nonzero(u()==1, 0), dtype=np.int32)
+                        z.k[l_prime] = 0 # np.array(np.count_nonzero(z()==1, 0), dtype=np.int32)
 
     # reset zeroed codes
     if False:
@@ -423,10 +279,10 @@ def reset_codes(z, u, noise_model):
                 print('reset zeroed')
                 z()[:,l] = -1
                 # only needed for binomial / beta-binomial prior
-                # TODO implement these prior for ormachine
+                # TODO implement these prior for ormgachine
                 if noise_model is 'maxmachine': 
                     z.k[l] = 0
-                    z.j = np.array(np.sum(z()==1, 1), dtype=np.int32)
+                    z.j = np.array(np.count_nonzero(z()==1, 1), dtype=np.int32)
 
     # reset nested codes
     if False:
@@ -435,85 +291,44 @@ def reset_codes(z, u, noise_model):
                 if l == l_prime:
                     continue
                 # smaller code needs to have at least one 1.
-                elif np.sum(u()[:,l_prime]==1) > 1 and np.all(u()[u()[:,l_prime]==1, l]==1):
+                elif np.count_nonzero(u()[:,l_prime]==1) > 1 and np.all(u()[u()[:,l_prime]==1, l]==1):
                     print('reset nesting '+str(l)+' '+str(l_prime) +
-                          ' ' + str(np.sum(u()[:,l]==1)) +
-                          ' ' + str(np.sum(u()[:,l_prime]==1)))
+                          ' ' + str(np.count_nonzero(u()[:,l]==1)) +
+                          ' ' + str(np.count_nonzero(u()[:,l_prime]==1)))
                     u()[u()[:,l_prime]==1,l] = -1
                     # z()[z()[:,l]==1,l_prime] = 1
 
                     if noise_model is 'maxmachine':
-                        u.k = np.array(np.sum(u()==1, 0), dtype=np.int32)
-                        u.j = np.array(np.sum(u()==1, 1), dtype=np.int32)
-                        z.k = np.array(np.sum(z()==1, 0), dtype=np.int32)
-                        z.j = np.array(np.sum(z()==1, 1), dtype=np.int32)
+                        u.k = np.array(np.count_nonzero(u()==1, 0), dtype=np.int32)
+                        u.j = np.array(np.count_nonzero(u()==1, 1), dtype=np.int32)
+                        z.k = np.array(np.count_nonzero(z()==1, 0), dtype=np.int32)
+                        z.j = np.array(np.count_nonzero(z()==1, 1), dtype=np.int32)
 
 
 def draw_lbda_wrapper(parm):
 
     P = cf.compute_P_parallel(parm.attached_matrices[0].child(),
-                                parm.attached_matrices[1](),
-                                parm.attached_matrices[0]())
+                              parm.attached_matrices[1](),
+                              parm.attached_matrices[0]())
 
     # effectie number of observations (precompute for speedup TODO (not crucial))
     ND = (np.prod(parm.attached_matrices[0].child().shape) -\
-                    np.sum(parm.attached_matrices[0].child() == 0))
+                    np.count_nonzero(parm.attached_matrices[0].child() == 0))
 
-    # set to MLE ( exp(-lbda_mle) = ND/P - 1 )
-    if ND==P:
-        parm.val = 10e10
-    else:
-        parm.val = np.max([0, np.min([1000,-np.log(ND/float(P)-1)])])
+    # Flat prior
+    if parm.prior_config[0] == 0:
+        # use Laplace rule of succession
+        parm.val = -np.log( ( (ND+2) / (float(P)+1) ) - 1  )
+        #parm.val = np.max([0, np.min([1000, -np.log( (ND) / (float(P)-1) )])])
 
-        
-def draw_lbda_indpndt_wrapper(parm):
-    
-    if parm.layer.predictive_accuracy_updated is False:
-        parm.layer.update_predictive_accuracy()
-
-    TP, FP = parm.layer.pred_rates[:2]
-    if not FP==0:
-        parm()[1] = np.max([0, np.log(TP) - np.log(FP)]) - parm.layer.child.log_bias
-    else:
-        parm()[1] = 1e3
-        
-    TN, FN = parm.layer.pred_rates[2:4]
-    if not FN==0:
-        parm()[0] = np.max([0, np.log(TN) - np.log(FN)]) + parm.layer.child.log_bias
-    else:
-        parm()[0] = 1e3
-        
-    return 0
+    # Beta prior
+    elif parm.prior_config[0] == 1:
+        alpha = parm.prior_config[1][0]
+        beta  = parm.prior_config[1][1]
+        parm.val = -np.log( (ND + alpha - 1) / (float(P) + alpha + beta -2) - 1 )        
 
 
-def draw_z_noparents_onechild_indpn_wrapper(mat):
-
-    cf.draw_noparents_onechild_indpn(
-        mat(),  # NxD
-        mat.sibling(),  # sibling u: D x Lc
-        mat.child(),  # child observation: N x Lc
-        mat.layer.mu, # mu own parameter: double
-        mat.layer.nu, # lbda
-        mat.logit_bernoulli_prior,
-        mat.sampling_indicator)
-    mat.layer.predictive_accuracy_updated = False
-
-    
-def draw_u_noparents_onechild_indpn_wrapper(mat):
-    
-    cf.draw_noparents_onechild_indpn(
-        mat(), # NxD
-        mat.sibling(), # sibling u: D x Lc
-        mat.child().transpose(), # child observation: N x Lc
-        mat.layer.mu, # mu own parameter: double
-        mat.layer.nu, # lbda
-        mat.logit_bernoulli_prior,
-        mat.sampling_indicator)
-    mat.layer.predictive_accuracy_updated = False
-
-
-
-def draw_u_maxmachine(mat):
+def draw_u_noparents_onechild_maxmachine(mat):
     ## order by accuracy of code
     l_statistic = mat.layer.lbda()[:-1]    
     
@@ -537,10 +352,11 @@ def draw_u_maxmachine(mat):
         mat.child().transpose(),
         mat.lbda(),
         l_order,
-        mat.prior_config)
+        mat.prior_config,
+        mat.layer.lbda_ratios)
 
 
-def draw_z_maxmachine(mat):           
+def draw_z_noparents_onechild_maxmachine(mat):           
     ## order by accuracy of code
     l_order = np.array(np.argsort(-mat.layer.lbda()[:-1]), dtype=np.int32)
     
@@ -550,12 +366,33 @@ def draw_z_maxmachine(mat):
         mat.child(),
         mat.lbda(),
         l_order,
-        mat.prior_config)
+        mat.prior_config,
+        mat.layer.lbda_ratios)
 
+            
+def draw_u_oneparent_onechild_maxmachine(mat):
+    l_order = np.array(np.argsort(-mat.layer.lbda()[:-1]), dtype=np.int32)
+    l_order_pa = np.array(np.argsort(-mat.parent_layers[0].lbda()[:-1]), dtype=np.int32)
+    from scipy.special import logit
+    
+    cf.draw_oneparent_onechild_maxmachine(
+        mat(),
+        mat.sibling(),
+        mat.child().transpose,
+        mat.lbda(),
+        l_order,
+        mat.prior_config,
+        mat.parents[0](),
+        mat.parents[1](),
+        logit(mat.parent_layers[0].lbda()), # TODO compute logit inside function
+        l_order_pa,
+        mat.layer.lbda_ratios)    
+            
         
 def draw_z_oneparent_onechild_maxmachine(mat):
     l_order = np.array(np.argsort(-mat.layer.lbda()[:-1]), dtype=np.int32)
     l_order_pa = np.array(np.argsort(-mat.parent_layers[0].lbda()[:-1]), dtype=np.int32)
+    from scipy.special import logit
     
     cf.draw_oneparent_onechild_maxmachine(
         mat(),
@@ -566,8 +403,9 @@ def draw_z_oneparent_onechild_maxmachine(mat):
         mat.prior_config,
         mat.parents[1](),
         mat.parents[0](),
-        mat.parent_layers[0].lbda(),
-        l_order_pa)    
+        logit(mat.parent_layers[0].lbda()), # TODO compute logit inside function
+        l_order_pa,
+        mat.layer.lbda_ratios)    
             
     
 # missing: twoparents_onechild, (arbitraryparents_onechild, arbitaryparents_nochild)
@@ -598,8 +436,19 @@ def draw_unified_wrapper_u(mat):
 
 
 def compute_bp(n, q, tau=1):
+    """
+    Compute binomial logit
+    """
     exp_bp = [(q*(n-k*tau)) / ((1-q)*(k*tau+1)) for k in range(n+1)]
     bp = [np.log(x) if (x > 0) else -np.infty for x in exp_bp]
     return np.array(bp, dtype=float)    
 
+
+def compute_bbp(n, a, b, tau=1):
+    """
+    Compute beta-binomial logit
+    """
+    exp_bbp = [(float((n-k*tau)*(k*tau+a))/float((k*tau+1)* (n-k*tau+b-1))) for k in range(n+1)]
+    bbp = [np.log(x) if (x > 0) else -np.infty for x in exp_bbp]
+    return np.array(bbp, dtype=float)
 

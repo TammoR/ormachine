@@ -1,12 +1,32 @@
+#!/usr/bin/env python
+"""
+MaxMachine
+
+This module implements classes for sampling form hierarchical binary matrix
+factorisation models, in particular for the MaxMachine.
+
+Flexible hierarchies of binary matrices with MaxMachine or OrMachine links
+can be specified. It features iid Bernoulli or row/column wise Binomial priors
+on the matrices, as well as beta priors on dispersion parameters.
+
+Example usage: see tests.
+
+Implemented classes are:
+- machine
+- machine_matrix
+- machine_parameter
+- trace
+
+"""
+
 from __future__ import absolute_import, division, print_function # for python2 support
+import wrappers
+import cython_functions as cf
 import numpy as np
 from numpy.random import binomial
-#import cython
 from random import shuffle
-import cython_functions as cf
 import unittest
-from IPython.core.debugger import Tracer
-import wrappers
+# from IPython.core.debugger import Tracer
 
 try:
     from scipy.special import expit
@@ -19,13 +39,8 @@ except:
         """
         return 1/(1+np.exp(-x))
 
-def unique_ordered(seq):
-    """
-    return unique list entries preserving order.
-    """
-    seen = set()
-    seen_add = seen.add
-    return [x for x in seq if not (x in seen or seen_add(x))]
+__author__ = "Tammo Rukat"
+__status__ = "Development"
 
 class trace():
     """
@@ -93,27 +108,6 @@ class trace():
         # otherwise infer it
         else:
             self.infer_sampling_fct()
-           
-
-# class parameter_container():
-#     """
-#     With introduction of the independent noise or maxmachine models,
-#     each layer can have more than one noise parameter.
-#     This class is a container for instances of machine_parameter that
-#     belong to one layer.
-#     methods like update_trace or set_sampling_fct need and in particular
-#     the sampling function need to do the right thing efficiently.
-#     E.g. in the independent OrM, mu and lbda should be updated together
-#     to avoid redundant computation.
-#     For compatibility, also parameters of the classical OrMachine are packaged
-#     in parameter cotainers.
-#     """
-
-#     def __init__(self):
-#         self.parms = []
-
-#     def append(self, machine_parameter):
-#         self.parms += 
 
             
 class machine_parameter(trace):
@@ -166,8 +160,7 @@ class machine_parameter(trace):
         """
 
         # beta priors on the noise parameters are only available in maxmachine (todo)
-        if self.noise_model != 'maxmachine':
-            return 0
+
 
         if (((prior_parms == [1,1]) or (prior_parms is None)) and
            ((clamped_unit_prior_parms == [1,1]) or (clamped_unit_prior_parms is None))):
@@ -178,14 +171,14 @@ class machine_parameter(trace):
             if prior_parms is None:
                 prior_parms = [1,1]
             if clamped_unit_prior_parms is None:
-                clamped_unit_prior_parms = [1,1]
+                clamped_unit_prior_parms = prior_parms
             
             self.prior_config = [1, prior_parms, clamped_unit_prior_parms]
 
             
     def correct_role_order(self):
         """
-        the assigne matrices have to be ordered (observations,features),
+        the assigned matrices have to be ordered (observations,features),
         i.e. (z,u)
         """
         
@@ -246,6 +239,7 @@ class machine_parameter(trace):
         else:
             self.val = np.max([0, np.min([1000, -np.log( ND / float(P) - 1)])])       
 
+            
 class machine_matrix(trace):
     """
     all matrices data/factor inherit from this class
@@ -309,7 +303,7 @@ class machine_matrix(trace):
 
         # initiliase some parameters to None
         # for type checking once they're used.
-        self.bernoulli_prior = None
+        self.logit_bernoulli_prior = None
         self.row_binomial_prior = None
         self.col_binomial_prior = None
         self.row_densities = None
@@ -342,7 +336,7 @@ class machine_matrix(trace):
             assert sampling_indicator.shape == self().shape
             self.sampling_indicator = np.array(sampling_indicator, dtype=np.int8)
 
-    def set_prior(self, prior_type=None, prior_parms=None, axis=None):
+    def set_prior(self, prior_type=None, prior_parms=None, axis=None, prior_code=None):
         """
         prior_type (str): 'bernoulli', 'binomial', 'beta-binomial'
         prior_parms (list of mixed types):
@@ -366,17 +360,18 @@ class machine_matrix(trace):
             self.prior_code = 0
         
         if (prior_type is not None) and (prior_type not in ['bernoulli', 'binomial', 'beta-binomial']):
-            print('No proper prior specified. Choices are bernoulli, binomial, beta binomial. Defaulting to flat priors')
-            set_prior()
+            print('No proper prior specified. Choices are bernoulli, binomial, beta binomial.')
+            print('Defaulting to flat priors')
+            self.set_prior()
 
         if prior_type is 'bernoulli':
             self.prior_code = 1
             if type(prior_parms) is list:
                 assert len(prior_parms) == 1
-                bernoulli_prior = prior_parms[0]
+                prior_parms = prior_parms[0]
             else:
                 assert type(prior_parms) is float
-            self.bernoulli_prior = prior_parms
+            self.logit_bernoulli_prior = logit(prior_parms)
 
         if prior_type is 'binomial':
             # set number of draws to axis length, if not provided.
@@ -413,30 +408,29 @@ class machine_matrix(trace):
             elif prior_type is 'beta-binomial':
                 print('beta-binomial not yet implemented.') # works just like above
 
-        self.prior_config = [self.prior_code,
-                             self.bernoulli_prior,
-                             self.row_binomial_prior,
-                             self.col_binomial_prior,
-                             self.row_densities,
-                             self.col_densities]
-                
-    def set_prior_old(self, bernoulli_prior=None, density_conditions=None):
+        self.prior_config = [self.prior_code, self.logit_bernoulli_prior, self.row_binomial_prior,
+                             self.col_binomial_prior, self.row_densities, self.col_densities]
+
+        
+    def update_prior_config(self):
         """
-        density_conditions is the max no of ones in each dimension
-        [min_row, min_col, max_row, max_col].
-        zero means unrestricted
+        If the model dimensions change, binomial priors need to be updated.
         """
-        if density_conditions is None:
-            self.density_conditions = np.array([0,0,0,0], dtype=np.int8)
-        else:
-            assert len(density_conditions) == 4
-            self.density_conditions = np.array(density_conditions, dtype=np.int8)
-       
-        self.bernoulli_prior = bernoulli_prior
-        if bernoulli_prior is None:
-            self.logit_bernoulli_prior = 0
-        else:
-            self.logit_bernoulli_prior = np.log(bernoulli_prior/(1-bernoulli_prior))
+        # No updating for bernoulli priors
+        if self.prior_config[0] < 2:
+            return
+        if (self.prior_config[0] == 2) or (self.prior_config == 4):
+            self.row_densities = np.array(np.sum(self()==1, 1), dtype=np.int32)
+            assert len(self.row_densities) == self().shape[0]
+            self.row_binomial_prior = compute_bp(prior_parms[0], prior_parms[1]+1, self().shape[1-axis]+1)
+        if (self.prior_config == 3)  or (self.prior_config == 4):
+            self.col_densities = np.array(np.sum(self()==1, 0), dtype=np.int32)
+            assert len(self.col_densities) == self().shape[1]
+            self.col_binomial_prior = compute_bp(prior_parms[0], prior_parms[1]+1, self().shape[1-axis]+1)
+        self.prior_config = [self.prior_code, self.logit_bernoulli_prior, self.row_binomial_prior,
+                             self.col_binomial_prior, self.row_densities, self.col_densities]            
+            
+        
     
     def family_setup(self):
         """
@@ -576,12 +570,12 @@ class machine_matrix(trace):
                 if not self.parents:
                     if self.role == 'observations':
                         if self.layer.noise_model == 'maxmachine':
-                            self.sampling_fct = wrappers.draw_z_maxmachine
+                            self.sampling_fct = wrappers.draw_z_noparents_onechild_maxmachine
                         elif self.layer.noise_model == 'coupled':
                             self.sampling_fct = wrappers.draw_z_noparents_onechild_wrapper
                     elif self.role == 'features':
                         if self.layer.noise_model == 'maxmachine':
-                            self.sampling_fct = wrappers.draw_u_maxmachine
+                            self.sampling_fct = wrappers.draw_u_noparents_onechild_maxmachine
                         elif self.layer.noise_model == 'coupled':
                             self.sampling_fct = wrappers.draw_u_noparents_onechild_wrapper       
                             
@@ -629,6 +623,9 @@ class machine_layer():
         self.child.add_parent_layer(self)
         self.noise_model = noise_model
         # Keep track of whehter P (OrM) or TP, FN, etc need updating
+
+        if noise_model == 'maxmachine':
+            self.precompute_lbda_ratios()
         
         if 'independent' in noise_model or True: # we can compute predict accuracies for the original model, too.
             self.predictive_accuracy_updated = False # switch to update only if needed
@@ -763,7 +760,33 @@ class machine_layer():
         """
         cf.compute_pred_accuracy(self.child(), self.u(), self.z(), self.pred_rates)
         self.predictive_accuracy_updated = True
-            
+
+
+    def precompute_lbda_ratios(self):
+        """
+        TODO: speedup (cythonise and parallelis)e
+        precompute matrix of size [2,L+1,L+1],
+        with log(lbda/lbda') / log( (1-lbda) / (1-lbda') )
+        as needed for maxmachine gibbs updates.
+        """
+
+        if self.noise_model != 'maxmachine':
+            return
+        
+        L = self.size + 1
+
+        lbda_ratios = np.zeros([2,L,L], dtype=np.float32)
+
+        for l1 in range(L):
+            for l2 in range(l1+1):
+                lratio_p = np.log(self.lbda()[l1]/self.lbda()[l2])
+                lratio_m = np.log( (1-self.lbda()[l1])/ (1-self.lbda()[l2]) )
+                lbda_ratios[0,l1,l2] = lratio_p
+                lbda_ratios[0,l2,l1] = -lratio_p
+                lbda_ratios[1,l1,l2] = lratio_m
+                lbda_ratios[1,l2,l1] = -lratio_m
+
+        self.lbda_ratios = lbda_ratios
             
     
 class machine():
@@ -946,10 +969,12 @@ class machine():
                         # check for dimensios to be removed and restart burn-in i.a.
                         if np.any([wrappers.clean_up_codes(lr, lr.noise_model)
                                    for lr in self.layers if lr.auto_clean_up is True]):
-                            print('\tremove duplicate or useless latent dimensions and restart burn-in')
+                            print('\tremove duplicate or useless latent dimensions and restart burn-in. New L='
+                                  +str([lr.size for lr in self.layers]))
                             for lbda in lbdas:
+                                # reallocate arrays for lbda trace
                                 lbda.allocate_trace_arrays(convergence_window)
-                                lbda.trace_index = 0          # reset trace index
+                                lbda.trace_index = 0
                         else:
                             self.burn_in_iters = burn_in_iter+pre_burn_in_iter # save no of burn in iters
                             break
@@ -1060,15 +1085,15 @@ class machine():
 
         # some sanity checks
         for layer in self.layers:
-            if False and layer.noise_model == 'maxmachine':
-                if layer1.u.row_densities is not None:
-                    assert np.all(layer1.u.row_densities == np.sum(layer1.u()==1,1))
-                if layer1.u.col_densities is not None:
-                    assert np.all(layer1.u.row_densities == np.sum(layer1.u()==1,0))    
-                if layer1.z.row_densities is not None:
-                    assert np.all(layer1.z.row_densities == np.sum(layer1.z()==1,1))
-                if layer1.z.col_densities is not None:
-                    assert np.all(layer1.z.row_densities == np.sum(layer1.z()==1,0))
+            if False: # and layer.noise_model == 'maxmachine':
+                if layer.u.row_densities is not None:
+                    assert np.all(layer.u.row_densities == np.sum(layer.u()==1,1))
+                if layer.u.col_densities is not None:
+                    assert np.all(layer.u.row_densities == np.sum(layer.u()==1,0))    
+                if layer.z.row_densities is not None:
+                    assert np.all(layer.z.row_densities == np.sum(layer.z()==1,1))
+                if layer.z.col_densities is not None:
+                    assert np.all(layer.z.row_densities == np.sum(layer.z()==1,0))
                     
         # set all parameters to MAP estimate
         # [mat.set_to_map() for mat in mats]
@@ -1166,3 +1191,13 @@ def compute_bp(q, n, N, tau=1):
         bp = bp_new
         
     return np.array(bp, dtype=float)
+
+
+def unique_ordered(seq):
+    """
+    return unique list entries preserving order.
+    """
+    seen = set()
+    seen_add = seen.add
+    return [x for x in seq if not (x in seen or seen_add(x))]
+
