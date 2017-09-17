@@ -1,5 +1,5 @@
 #!python
-#cython: profile=False, language_level=3, boundscheck=False, wraparound=False, cdivision=True
+#cython: profile=False, language_level=3, boundscheck=True, wraparound=False, cdivision=True
 #cython --compile-args=-fopenmp --link-args=-fopenmp --force -a
 ## for compilation run: python setup.py build_ext --inplace
 
@@ -521,8 +521,8 @@ cpdef inline long compute_P_parallel(data_type_t[:,:] x,
     cdef long P = 0
     cdef int d, n
 
-    for n in prange(x.shape[0], schedule=dynamic, nogil=True):
-    # for n in range(x.shape[0]):
+    #for n in prange(x.shape[0], schedule=dynamic, nogil=True):
+    for n in range(x.shape[0]):
         for d in range(x.shape[1]):
             if compute_g_alt_tilde_unified(u[d,:], z[n,:]) == x[n, d]:
                 P += 1

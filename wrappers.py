@@ -212,18 +212,18 @@ def clean_up_codes(layer, noise_model):
                         parent.val = np.delete(parent.val, l_prime, axis=0)
                         parent.update_prior_config()
 
+    reduction_applied = False                        
     # remove inactive codes
     l = 0
     while l < layer.size:
         if np.all(layer.z()[:,l] == -1) or np.all(layer.u()[:,l] == -1):
-            # print('remove zero dimension')
+            # print('remove inactive dimension')
             reduction_applied = True
             remove_dimension(l, layer)
         l += 1
                         
     # clean duplicates
     l = 0
-    reduction_applied = False
     while l < layer.size:
         l_prime = l+1
         while l_prime < layer.size:
@@ -306,8 +306,8 @@ def reset_codes(z, u, noise_model):
 
 
 def draw_lbda_wrapper(parm):
-
-    P = cf.compute_P_parallel(parm.attached_matrices[0].child(),
+    from scipy.special import logit
+    P = cf.compute_P_parallel(parm.attached_matrices[1].child(),
                               parm.attached_matrices[1](),
                               parm.attached_matrices[0]())
 
@@ -318,14 +318,14 @@ def draw_lbda_wrapper(parm):
     # Flat prior
     if parm.prior_config[0] == 0:
         # use Laplace rule of succession
-        parm.val = -np.log( ( (ND+2) / (float(P)+1) ) - 1  )
+        parm.val = -np.log( ( (ND) / (float(P) ) ) - 1 )
         #parm.val = np.max([0, np.min([1000, -np.log( (ND) / (float(P)-1) )])])
-
+        
     # Beta prior
     elif parm.prior_config[0] == 1:
         alpha = parm.prior_config[1][0]
         beta  = parm.prior_config[1][1]
-        parm.val = -np.log( (ND + alpha - 1) / (float(P) + alpha + beta -2) - 1 )        
+        parm.val = -np.log( (ND + alpha - 1) / (float(P) + alpha + beta - 2) - 1 )        
 
 
 def draw_u_noparents_onechild_maxmachine(mat):

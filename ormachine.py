@@ -20,6 +20,8 @@ Implemented classes are:
 """
 
 from __future__ import absolute_import, division, print_function # for python2 support
+from IPython.core.debugger import Tracer
+import pyximport; pyximport.install()
 import wrappers
 import cython_functions as cf
 import numpy as np
@@ -312,10 +314,7 @@ class machine_matrix(trace):
         if density_conditions == None:
             self.density_conditions = None
         
-    @staticmethod
-    def layer():
-        print('no corresponding layer defined')
-        
+    
     def add_parent_layer(self, layer):
         if self.parent_layers is None:
             self.parent_layers = [layer]
@@ -489,13 +488,13 @@ class machine_matrix(trace):
         self.val[self.val==0] = -1
 
     def infer_sampling_fct(self):
-        """
         Assing appropriate sampling function as attribute, depending
         on family status, sampling status etc. or assign sampling_fct
         if provided as argument.
         Functions take mat object as only argument.
         """
         # first do some sanity checks, no of children etc. Todo
+        
         if 'independent' in self.layer.noise_model:
             if not np.any(self.density_conditions) and not self.parents:
                 if self.role == 'observations':
@@ -608,16 +607,13 @@ class machine_layer():
     def __init__(self, z, u, lbda, size, child, noise_model):
         self.z = z
         self.u = u
-        lbda.layer = self
-        #self.lbdas = lbdas
-        #for lbda in lbdas:
-        #    lbda.layer = self
-
         self.lbda = lbda
         self.size = size
+        
         # register as layer of members
         self.z.layer = self
         self.u.layer = self
+        self.lbda.layer = self
         # self.lbdas.layer = self # not working in independent noise implementation
         self.child = child
         self.child.add_parent_layer(self)
@@ -826,9 +822,8 @@ class machine():
     
         
     def add_layer(self, size=None, child=None, 
-                  lbda_init=1.5, z_init=.5, u_init=0.0, 
+                  lbda_init=1.5, z_init=0.5, u_init=0.5, 
                   z_prior=None, u_prior=None,
-                  z_density_conditions=None, u_density_conditions=None,
                   noise_model='coupled'):
         """
         This essentially wraps the necessary calls to
@@ -853,12 +848,10 @@ class machine():
 
         z = self.add_matrix(shape=shape_z, 
                             child=child, p_init=z_init, bernoulli_prior=z_prior,
-                            density_conditions=z_density_conditions,
                             role='observations')
         
         u = self.add_matrix(shape=shape_u, sibling=z, 
                             child=child, p_init=u_init, bernoulli_prior=u_prior,
-                            density_conditions=u_density_conditions,
                             role='features')
 
         if 'coupled' in noise_model:
@@ -1036,8 +1029,11 @@ class machine():
 
         # assign sampling function to each mat
         for thing_to_update in mats+lbdas:
-            if not thing_to_update.sampling_fct:
-                thing_to_update.set_sampling_fct()
+            try:
+                if not thing_to_update.sampling_fct:
+                    thing_to_update.set_sampling_fct()
+            except:
+                Tracer()()
 
         # make sure all trace indicies are zero
         for mat in mats:
