@@ -488,7 +488,8 @@ class machine_matrix(trace):
         self.val[self.val==0] = -1
 
     def infer_sampling_fct(self):
-        Assing appropriate sampling function as attribute, depending
+        """
+        Assign appropriate sampling function as attribute, depending
         on family status, sampling status etc. or assign sampling_fct
         if provided as argument.
         Functions take mat object as only argument.
