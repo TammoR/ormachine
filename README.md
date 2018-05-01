@@ -1,5 +1,7 @@
 # The OrMachine
 
+*This package is depracated. Use [Logical Factorisation Machines](https://github.com/TammoR/LogicalFactorisationMachines) instead.*
+
 ## Installation
 Code is full compatible with Python 2 and 3.
 To install and test the packge run the following commands:
